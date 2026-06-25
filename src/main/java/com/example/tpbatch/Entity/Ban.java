@@ -3,11 +3,8 @@ package com.example.tpbatch.Entity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import java.util.Objects;
 
 @Entity
 @NoArgsConstructor

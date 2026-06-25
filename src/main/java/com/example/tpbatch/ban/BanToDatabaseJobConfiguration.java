@@ -2,6 +2,8 @@ package com.example.tpbatch.ban;
 
 import com.example.tpbatch.Entity.Ban;
 
+import com.example.tpbatch.listener.BanItemReadListener;
+import com.example.tpbatch.listener.JobProgressListener;
 import jakarta.persistence.EntityManagerFactory;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.job.Job;
@@ -33,17 +35,19 @@ public class BanToDatabaseJobConfiguration {
     }
 
     @Bean
-    public Job job(JobRepository repo, Step step)
+    public Job job(JobRepository repo, Step step, JobProgressListener listener)
     {
         return new JobBuilder("Job", repo)
                 .start(step)
+                .listener(listener)
                 .build();
     }
 
     @Bean
     public Step step(JobRepository repo, FlatFileItemReader<Ban> csvReader,
                      CompositeItemProcessor<Ban, Ban>  compositeProcessor,
-                     JpaItemWriter<Ban> writer, PlatformTransactionManager transactionManager )
+                     JpaItemWriter<Ban> writer, PlatformTransactionManager transactionManager,
+                     BanItemReadListener listener)
     {
         return new StepBuilder("step", repo)
                 .<Ban,Ban>chunk(1000)
@@ -51,6 +55,7 @@ public class BanToDatabaseJobConfiguration {
                 .processor(compositeProcessor)
                 .writer(writer)
                 .transactionManager(transactionManager)
+                .listener(listener)
                 .build();
     }
 

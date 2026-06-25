@@ -1,8 +1,6 @@
 package com.example.tpbatch.ban;
 
 import com.example.tpbatch.Entity.Ban;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.infrastructure.item.file.FlatFileItemReader;
 import org.springframework.batch.infrastructure.item.file.builder.FlatFileItemReaderBuilder;
 import org.springframework.batch.infrastructure.item.file.mapping.BeanWrapperFieldSetMapper;
@@ -11,18 +9,18 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 
-import java.time.LocalTime;
-
 @Configuration
 public class BanItemReader {
 
-    private static final Logger logger = LoggerFactory.getLogger(BanItemReader.class);
+    @Value("${file}")
+    private String file;
+
     @Bean
     public FlatFileItemReader<Ban>  csvReader()
     {
         return new FlatFileItemReaderBuilder<Ban>()
                 .name("BanCsvReader")
-                .resource(new ClassPathResource("data/adresses-79.csv"))
+                .resource(new ClassPathResource(file))
                 .delimited()
                 .delimiter(";")
                 .names("id","id_fantoir","numero","rep","nom_voie",
