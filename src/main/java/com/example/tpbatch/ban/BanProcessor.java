@@ -1,6 +1,6 @@
 package com.example.tpbatch.ban;
 
-import com.example.tpbatch.Entity.Ban;
+import com.example.tpbatch.Dto.BanDto;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -10,14 +10,14 @@ import org.springframework.stereotype.Component;
 
 @Component
 @StepScope
-public class BanProcessor implements ItemProcessor<Ban, Ban> {
+public class BanProcessor implements ItemProcessor<BanDto, BanDto> {
 
     @Value("#{jobParameters['typeCriteria']}") private String typeCriteria;
     @Value("#{jobParameters['criteria']}") private String criteria;
 
 
     @Override
-    public @Nullable Ban process(@NonNull Ban address) throws Exception {
+    public @Nullable BanDto process(@NonNull BanDto address) throws Exception {
         if(typeCriteria.isEmpty() && criteria.isEmpty())
         {
             return address;
