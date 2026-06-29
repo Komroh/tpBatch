@@ -1,5 +1,6 @@
 package com.example.tpbatch.Entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -18,27 +19,42 @@ public class Ban{
     @Id
     @Pattern(regexp = "[0-9]{5}_[A-Za-z0-9]+_.*", message = "Mauvais format d'id")
     private String id;
-    private String id_fantoir;
+    @Column(name = "id_fantoir")
+    private String idFantoir;
     private Integer numero;
     private String rep;
-    private String nom_voie;
-    private String code_postal;
-    private String code_insee;
-    private String nom_commune;
-    private String code_insee_ancienne_commune;
-    private String nom_ancienne_commune ;
+    @Column(name = "nom_voie")
+    private String nomVoie;
+    @Column(name = "code_postal")
+    private String codePostal;
+    @Column(name = "code_insee")
+    private String codeInsee;
+    @Column(name = "nom_commune")
+    private String nomCommune;
+    @Column(name = "code_insee_ancienne_commune")
+    private String codeInseeAncienneCommune;
+    @Column(name = "nom_ancienne_commune")
+    private String nomAncienneCommune ;
     private Double x;
     private Double y;
     private Double lon ;
     private Double lat ;
-    private String type_position;
+    @Column(name = "type_position")
+    private String typePosition;
     private String alias ;
-    private String nom_ld ;
-    private String libelle_acheminement ;
-    private String nom_afnor;
-    private String source_position;
-    private String source_nom_voie;
-    private Integer certification_commune;
-    private String cad_parcelles;
+    @Column(name = "nom_ld")
+    private String nomLd ;
+    @Column(name = "libelle_acheminement")
+    private String libelleAcheminement ;
+    @Column(name = "nom_afnor")
+    private String nomAfnor;
+    @Column(name = "source_position")
+    private String sourcePosition;
+    @Column(name = "source_nom_voie")
+    private String sourceNomVoie;
+    @Column(name = "certification_commune")
+    private Integer certificationCommune;
+    @Column(name = "cad_parcelles")
+    private String cadParcelles;
 
 }
