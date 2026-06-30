@@ -1,0 +1,35 @@
+package com.example.tpbatch.ban;
+
+import com.example.tpbatch.Entity.Ban;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
+import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.infrastructure.item.ItemProcessor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+@Component
+@StepScope
+public class BanStageProc implements ItemProcessor<Ban, Ban> {
+
+    @Value("#{jobParameters['typeCriteria']}") private String typeCriteria;
+    @Value("#{jobParameters['criteria']}") private String criteria;
+
+
+    @Override
+    public @Nullable Ban process(@NonNull Ban address) throws Exception {
+        if(typeCriteria.isEmpty() && criteria.isEmpty())
+        {
+            return address;
+        }
+        if(!typeCriteria.isEmpty()) {
+            return switch (typeCriteria) {
+                case "dept" -> address.getCodePostal().startsWith(criteria) ? address : null;
+                case "postal" -> address.getCodePostal().equals(criteria) ? address : null;
+                case "insee" -> address.getCodeInsee().equals(criteria) ? address : null;
+                default -> throw new IllegalArgumentException("Invalid field argument");
+            };
+        }
+        return null;
+    }
+}
