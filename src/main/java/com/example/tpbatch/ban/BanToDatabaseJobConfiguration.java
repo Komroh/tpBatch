@@ -109,7 +109,7 @@ public class BanToDatabaseJobConfiguration {
     @Qualifier("addedStep")
     @Bean
     public Step addedStep(AddedTasklet tasklet, JobRepository repo, PlatformTransactionManager transactionManager) {
-        return new StepBuilder("Delete Step", repo)
+        return new StepBuilder("Added Step", repo)
                 .tasklet(tasklet)
                 .transactionManager(transactionManager)
                 .build();

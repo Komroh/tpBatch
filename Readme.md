@@ -122,8 +122,3 @@ La base de données est initialisée via `schema.sql` :
 SQLite: ./src/main/resources/data/ban.db
 ```
 
-## Bugs
-
-A l'heure actuelle, trop de lignes sont inserées dans ma base, il s'agit d'une régression car le bon nombre de ligne était inséré dans la base avant de réaliser l'étape 3.
-
-
