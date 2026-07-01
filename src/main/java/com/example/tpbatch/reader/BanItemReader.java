@@ -1,4 +1,4 @@
-package com.example.tpbatch.ban;
+package com.example.tpbatch.reader;
 
 import com.example.tpbatch.Entity.Ban;
 import org.springframework.batch.infrastructure.item.file.FlatFileItemReader;

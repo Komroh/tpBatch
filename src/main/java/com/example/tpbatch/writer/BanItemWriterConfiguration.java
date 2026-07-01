@@ -1,4 +1,4 @@
-package com.example.tpbatch.ban;
+package com.example.tpbatch.writer;
 
 import com.example.tpbatch.Dto.BanDto;
 import com.example.tpbatch.Entity.Ban;
@@ -42,7 +42,8 @@ public class BanItemWriterConfiguration {
                                source_position,
                                source_nom_voie,
                                certification_commune,
-                               cad_parcelles)
+                               cad_parcelles,
+                               hash)
                                
                                VALUES (
                                :id,
@@ -67,7 +68,8 @@ public class BanItemWriterConfiguration {
                                :source_position,
                                :source_nom_voie,
                                :certification_commune,
-                               :cad_parcelles)
+                               :cad_parcelles,
+                               :hash)
                                """
                )
                .beanMapped()
@@ -167,7 +169,8 @@ public class BanItemWriterConfiguration {
                                 source_position,
                                 source_nom_voie,
                                 certification_commune,
-                                cad_parcelles)
+                                cad_parcelles,
+                                hash)
                                 
                                 VALUES (
                                 :id,
@@ -192,7 +195,8 @@ public class BanItemWriterConfiguration {
                                 :sourcePosition,
                                 :sourceNomVoie,
                                 :certificationCommune,
-                                :cadParcelles)
+                                :cadParcelles,
+                                :hash)
                                 """
                 )
                 .beanMapped()

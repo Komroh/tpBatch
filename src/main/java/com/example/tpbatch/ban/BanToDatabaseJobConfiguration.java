@@ -3,12 +3,16 @@ package com.example.tpbatch.ban;
 import com.example.tpbatch.Dto.BanDto;
 import com.example.tpbatch.Entity.Ban;
 
+import com.example.tpbatch.classifier.BanClassifier;
 import com.example.tpbatch.listener.JobProgressListener;
 
+import com.example.tpbatch.processor.BanProcessor;
+import com.example.tpbatch.processor.DuplicateProcessor;
 import com.example.tpbatch.tasklet.AddedTasklet;
 import com.example.tpbatch.tasklet.DeletedTasklet;
 import com.example.tpbatch.tasklet.IdentifyUpdateTasklet;
 import com.example.tpbatch.tasklet.InsertTasklet;
+import com.example.tpbatch.writer.BanItemWriterConfiguration;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.builder.JobBuilder;
@@ -21,6 +25,7 @@ import org.springframework.batch.infrastructure.item.support.ClassifierComposite
 import org.springframework.batch.infrastructure.item.support.CompositeItemProcessor;
 import org.springframework.batch.infrastructure.item.validator.BeanValidatingItemProcessor;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -34,6 +39,8 @@ import java.util.List;
 public class BanToDatabaseJobConfiguration {
 
 
+    @Value("${chunkSize}")
+    private Integer chunkSize;
     @Bean
     public JobOperatorFactoryBean jobOperator(JobRepository jobRepository) {
         JobOperatorFactoryBean jobOperatorFactoryBean = new JobOperatorFactoryBean();
@@ -43,17 +50,17 @@ public class BanToDatabaseJobConfiguration {
 
     @Bean
     public Job job(JobRepository repo, Step initInsertStep,
-                   @Qualifier("updateStep") Step updateStep,
                    @Qualifier("addedStep") Step addedStep,
                    @Qualifier("deletedStep") Step deletedStep,
+                   @Qualifier("updateStep") Step updateStep,
                    @Qualifier("insertStep") Step insertStep,
                    JobProgressListener listener)
     {
         return new JobBuilder("Job", repo)
                 .start(initInsertStep)
-                .next(updateStep)
                 .next(addedStep)
                 .next(deletedStep)
+                .next(updateStep)
                 .next(insertStep)
                 .listener(listener)
                 .build();
@@ -68,7 +75,7 @@ public class BanToDatabaseJobConfiguration {
                                DuplicateProcessor duplicationProcessor)
     {
         return new StepBuilder("step1", repo)
-                .<Ban,BanDto>chunk(10000)
+                .<Ban,BanDto>chunk(chunkSize)
                 .reader(csvReader)
                 .processor(compositeProcessor)
                 .writer(classifierBanCompositeItemWriter)

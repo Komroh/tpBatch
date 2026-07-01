@@ -93,6 +93,11 @@
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
 			<version>3.0.3</version>
 		</dependency>
+		<dependency>
+			<groupId>net.openhft</groupId>
+			<artifactId>zero-allocation-hashing</artifactId>
+			<version>2026.0</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>

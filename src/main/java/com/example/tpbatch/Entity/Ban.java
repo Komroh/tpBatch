@@ -56,5 +56,7 @@ public class Ban{
     private Integer certificationCommune;
     @Column(name = "cad_parcelles")
     private String cadParcelles;
+    @Column(name = "hash")
+    private long hash;
 
 }

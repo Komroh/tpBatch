@@ -36,7 +36,8 @@ CREATE TABLE IF NOT EXISTS t_ban(
 	source_position TEXT,
 	source_nom_voie TEXT,
 	certification_commune INTEGER,
-	cad_parcelles TEXT
+	cad_parcelles TEXT,
+    hash INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS t_ban_prec(
@@ -62,7 +63,8 @@ CREATE TABLE IF NOT EXISTS t_ban_prec(
     source_position TEXT,
     source_nom_voie TEXT,
     certification_commune INTEGER,
-    cad_parcelles TEXT
+    cad_parcelles TEXT,
+    hash INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS t_ban_update(
@@ -88,7 +90,8 @@ CREATE TABLE IF NOT EXISTS t_ban_update(
      source_position TEXT,
      source_nom_voie TEXT,
      certification_commune INTEGER,
-     cad_parcelles TEXT
+     cad_parcelles TEXT,
+     hash INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS t_ban_added(
@@ -114,7 +117,8 @@ CREATE TABLE IF NOT EXISTS t_ban_added(
      source_position TEXT,
      source_nom_voie TEXT,
      certification_commune INTEGER,
-     cad_parcelles TEXT
+     cad_parcelles TEXT,
+     hash INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS t_ban_del(
@@ -140,7 +144,8 @@ CREATE TABLE IF NOT EXISTS t_ban_del(
      source_position TEXT,
      source_nom_voie TEXT,
      certification_commune INTEGER,
-     cad_parcelles TEXT
+     cad_parcelles TEXT,
+     hash INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS t_ban_duplicate(
@@ -167,5 +172,6 @@ CREATE TABLE IF NOT EXISTS t_ban_duplicate(
     source_position TEXT,
     source_nom_voie TEXT,
     certification_commune INTEGER,
-    cad_parcelles TEXT
+    cad_parcelles TEXT,
+    hash INTEGER
 );

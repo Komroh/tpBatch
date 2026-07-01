@@ -1,4 +1,4 @@
-package com.example.tpbatch.ban;
+package com.example.tpbatch.classifier;
 
 import com.example.tpbatch.Dto.BanDto;
 import org.slf4j.Logger;

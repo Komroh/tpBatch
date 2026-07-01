@@ -1,4 +1,4 @@
-package com.example.tpbatch.ban;
+package com.example.tpbatch.processor;
 
 import com.example.tpbatch.Dto.BanDto;
 import com.example.tpbatch.Entity.Ban;

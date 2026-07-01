@@ -34,7 +34,9 @@ public class BanDto {
     private String source_nom_voie;
     private Integer certification_commune;
     private String cad_parcelles;
+    private long hash;
     private Boolean isDuplicate;
+
 
     public static BanDto from(Ban ban) {
             return new BanDto(ban.getId(),
@@ -60,6 +62,7 @@ public class BanDto {
                     ban.getSourceNomVoie(),
                     ban.getCertificationCommune(),
                     ban.getCadParcelles(),
+                    ban.getHash(),
                     false);
         }
         public Ban toBan()
@@ -87,7 +90,8 @@ public class BanDto {
                     this.source_position,
                     this.source_nom_voie,
                     this.certification_commune,
-                    this.cad_parcelles
+                    this.cad_parcelles,
+                    this.hash
             );
         }
 }
