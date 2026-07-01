@@ -8,16 +8,20 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.stereotype.Component;
+
 
 @Configuration
+@Component
 public class BanItemReader {
 
     @Value("${file}")
-    private String file;
+    private String  file;
 
     @Bean
     public FlatFileItemReader<Ban>  csvReader()
     {
+
         return new FlatFileItemReaderBuilder<Ban>()
                 .name("BanCsvReader")
                 .resource(new ClassPathResource(file))

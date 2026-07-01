@@ -9,25 +9,25 @@ import java.util.stream.Stream;
 
 public class BanSpecification {
 
-    private static Specification<Ban> codePostal(String code)
+    private static Specification<Ban> PostalCode(String code)
     {
         if(code == null || code.isBlank()) return null;
         return (root, query, cb) ->{
             return cb.like(root.get("codePostal"), code + "%");
         };
     }
-    private static Specification<Ban> rue(String nomRue)
+    private static Specification<Ban> streetCriteria(String streetName)
     {
-        if(nomRue == null || nomRue.isBlank()) return null;
+        if(streetName == null || streetName.isBlank()) return null;
         return (root, query, cb) ->{
-            return cb.like(root.get("nomVoie"), nomRue);
+            return cb.like(root.get("nomVoie"), streetName);
         };
     }
-    private static Specification<Ban> commune(String nomCommune)
+    private static Specification<Ban> cityCriteria(String cityName)
     {
-        if(nomCommune == null || nomCommune.isBlank()) return null;
+        if(cityName == null || cityName.isBlank()) return null;
         return (root, query, cb) ->{
-            return cb.like(root.get("nomCommune"), nomCommune);
+            return cb.like(root.get("nomCommune"), cityName);
         };
     }
 
@@ -35,12 +35,12 @@ public class BanSpecification {
     {
         return Specification.allOf(
                 Stream.of(
-                     codePostal(criteria.codePastal()),
-                     rue(criteria.rue()),
-                     commune(criteria.commune())
-                )
-                .filter(Objects::nonNull)
-                .toList()
+                                PostalCode(criteria.codePastal()),
+                                streetCriteria(criteria.rue()),
+                                cityCriteria(criteria.commune())
+                        )
+                        .filter(Objects::nonNull)
+                        .toList()
         );
     }
 }
