@@ -21,34 +21,16 @@ public class IdentifyUpdateTasklet implements Tasklet {
 
 
         String sql = """
-            INSERT INTO t_ban_update
-        
-                SELECT b.*
-                FROM t_ban b
-                JOIN t_ban_prec p ON b.id = p.id
-                WHERE
-                       b.id_fantoir <> p.id_fantoir
-                    OR b.numero <> p.numero
-                    OR b.rep <> p.rep
-                    OR b.nom_voie <> p.nom_voie
-                    OR b.code_postal <> p.code_postal
-                    OR b.code_insee <> p.code_insee
-                    OR b.nom_commune <> p.nom_commune
-                    OR b.code_insee_ancienne_commune <> p.code_insee_ancienne_commune
-                    OR b.nom_ancienne_commune <> p.nom_ancienne_commune
-                    OR b.x <> p.x
-                    OR b.y <> p.y
-                    OR b.lon <> p.lon
-                    OR b.lat <> p.lat
-                    OR b.type_position <> p.type_position
-                    OR b.alias <> p.alias
-                    OR b.nom_ld <> p.nom_ld
-                    OR b.libelle_acheminement <> p.libelle_acheminement
-                    OR b.nom_afnor <> p.nom_afnor
-                    OR b.source_position <> p.source_position
-                    OR b.source_nom_voie <> p.source_nom_voie
-                    OR b.certification_commune <> p.certification_commune
-                    OR b.cad_parcelles <> p.cad_parcelles;
+ 
+               INSERT INTO t_ban_update(id)
+                   SELECT b.id
+                   FROM t_ban b
+                   WHERE EXISTS (
+                       SELECT 1
+                       FROM t_ban_prec p
+                       WHERE p.id = b.id
+                         AND p.hash <> b.hash
+                   );
             """;
 
         int updated = jdbcTemplate.update(sql);

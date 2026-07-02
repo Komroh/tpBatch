@@ -8,10 +8,7 @@ import com.example.tpbatch.listener.JobProgressListener;
 
 import com.example.tpbatch.processor.BanProcessor;
 import com.example.tpbatch.processor.DuplicateProcessor;
-import com.example.tpbatch.tasklet.AddedTasklet;
-import com.example.tpbatch.tasklet.DeletedTasklet;
-import com.example.tpbatch.tasklet.IdentifyUpdateTasklet;
-import com.example.tpbatch.tasklet.InsertTasklet;
+import com.example.tpbatch.tasklet.*;
 import com.example.tpbatch.writer.BanItemWriterConfiguration;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.job.Job;
@@ -49,32 +46,33 @@ public class BanToDatabaseJobConfiguration {
     }
 
     @Bean
-    public Job job(JobRepository repo, Step initInsertStep,
+    public Job job(JobRepository repo,
+                   @Qualifier("initStep") Step initTableStep,
+                   Step insertStep,
                    @Qualifier("addedStep") Step addedStep,
                    @Qualifier("deletedStep") Step deletedStep,
                    @Qualifier("updateStep") Step updateStep,
-                   @Qualifier("insertStep") Step insertStep,
                    JobProgressListener listener)
     {
         return new JobBuilder("Job", repo)
-                .start(initInsertStep)
+                .start(initTableStep)
+                .next(insertStep)
                 .next(addedStep)
                 .next(deletedStep)
                 .next(updateStep)
-                .next(insertStep)
                 .listener(listener)
                 .build();
     }
 
 
     @Bean
-    public Step initInsertStep(JobRepository repo, FlatFileItemReader<Ban> csvReader,
+    public Step insertStep(JobRepository repo, FlatFileItemReader<Ban> csvReader,
                                CompositeItemProcessor<Ban, BanDto>  compositeProcessor,
                                ClassifierCompositeItemWriter<BanDto> classifierBanCompositeItemWriter,
                                PlatformTransactionManager transactionManager,
                                DuplicateProcessor duplicationProcessor)
     {
-        return new StepBuilder("step1", repo)
+        return new StepBuilder("Insert step", repo)
                 .<Ban,BanDto>chunk(chunkSize)
                 .reader(csvReader)
                 .processor(compositeProcessor)
@@ -85,10 +83,10 @@ public class BanToDatabaseJobConfiguration {
     }
 
 
-    @Qualifier("insertStep")
+    @Qualifier("initStep")
     @Bean
-    public Step insertStep(InsertTasklet tasklet, JobRepository repo, PlatformTransactionManager transactionManager) {
-        return new StepBuilder("Insert Step", repo)
+    public Step initTableStep(InitTableTasklet tasklet, JobRepository repo, PlatformTransactionManager transactionManager) {
+        return new StepBuilder("Init Step", repo)
                 .tasklet(tasklet)
                 .transactionManager(transactionManager)
                 .build();

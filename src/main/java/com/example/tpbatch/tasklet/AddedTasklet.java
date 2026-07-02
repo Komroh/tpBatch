@@ -19,9 +19,9 @@ public class AddedTasklet implements Tasklet {
     public @Nullable RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
         String sql = """
                 INSERT INTO t_ban_added
-                SELECT b.*
+                SELECT b.id
                 FROM t_ban b
-                LEFT JOIN t_ban_prec p ON b.id = p.id
+                LEFT JOIN t_ban_prec p ON p.id = b.id
                 WHERE p.id IS NULL;
                 """;
         int added = jdbcTemplate.update(sql);

@@ -19,10 +19,9 @@ public class DeletedTasklet implements Tasklet {
     public @Nullable RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
         String sql = """
                 INSERT INTO t_ban_del
-                SELECT p.*
-                FROM t_ban_prec p
-                LEFT JOIN t_ban b ON p.id = b.id
-                WHERE b.id IS NULL;
+                    SELECT p.id
+                    FROM t_ban_prec p
+                    WHERE NOT EXISTS(SELECT 1 FROM t_ban b WHERE b.id = p.id);
             """;
 
         int deleted = jdbcTemplate.update(sql);
