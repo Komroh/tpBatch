@@ -1,4 +1,5 @@
 PRAGMA journal_mode = WAL;
+PRAGMA busy_timeout = 10000;
 PRAGMA temp_store = MEMORY;
 PRAGMA synchronous = NORMAL;
 PRAGMA cache_size = -1000000; -- Environ 50 Mo

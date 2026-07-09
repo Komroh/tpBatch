@@ -1,13 +1,14 @@
 package com.example.tpbatch.reader;
 
 import com.example.tpbatch.Entity.Ban;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.infrastructure.item.file.FlatFileItemReader;
 import org.springframework.batch.infrastructure.item.file.builder.FlatFileItemReaderBuilder;
 import org.springframework.batch.infrastructure.item.file.mapping.BeanWrapperFieldSetMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.stereotype.Component;
 
 
@@ -15,16 +16,20 @@ import org.springframework.stereotype.Component;
 @Component
 public class BanItemReader {
 
-    @Value("${file}")
+    @Value("${tempFile}")
     private String  file;
-
     @Bean
-    public FlatFileItemReader<Ban>  csvReader()
+    @StepScope
+    public FlatFileItemReader<Ban>  csvReader(
+            @Value("#{stepExecutionContext[first_line]}") final Long firstLine,
+            @Value("#{stepExecutionContext[last_line]}") final Long lastLine
+    )
     {
-
         return new FlatFileItemReaderBuilder<Ban>()
                 .name("BanCsvReader")
-                .resource(new ClassPathResource(file))
+                .linesToSkip(Math.toIntExact(firstLine))
+                .maxItemCount(Math.toIntExact(lastLine))
+                .resource(new FileSystemResource(file))
                 .delimited()
                 .delimiter(";")
                 .names("id","id_fantoir","numero","rep","nom_voie",
@@ -36,7 +41,6 @@ public class BanItemReader {
                 .fieldSetMapper(new BeanWrapperFieldSetMapper<>() {{
                     setTargetType(Ban.class);
                 }})
-                .linesToSkip(1)
                 .build();
     }
 }
