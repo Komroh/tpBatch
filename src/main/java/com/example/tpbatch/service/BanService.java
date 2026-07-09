@@ -7,6 +7,7 @@ import com.example.tpbatch.specification.BanSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,4 +31,9 @@ public class BanService {
         return repo.findAll(BanSpecification.build(criteria), pageable);
     }
 
+    public Page<Ban> rechercheChaine(String chaine, Pageable pageable) {
+
+        Specification<Ban> spec = new BanSpecification().compareString(chaine);
+        return repo.findAll(spec, pageable);
+    }
 }

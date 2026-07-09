@@ -2,6 +2,7 @@ package com.example.tpbatch.specification;
 
 import com.example.tpbatch.Dto.BanSearchRequest;
 import com.example.tpbatch.Entity.Ban;
+import jakarta.persistence.criteria.Expression;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.Objects;
@@ -9,38 +10,58 @@ import java.util.stream.Stream;
 
 public class BanSpecification {
 
-    private static Specification<Ban> PostalCode(String code)
+    private static Specification<Ban> postalCode(String code)
     {
         if(code == null || code.isBlank()) return null;
-        return (root, query, cb) ->{
-            return cb.like(root.get("codePostal"), code + "%");
-        };
+        return (root, query, cb) ->
+             cb.like(root.get("codePostal"), code.trim() + "%");
+
+    }
+
+    private static Specification<Ban> numberCriteria(Integer number)
+    {
+        if(number == null) return null;
+        return (root, query, cb) ->
+             cb.equal(root.get("numero"), number);
+
     }
     private static Specification<Ban> streetCriteria(String streetName)
     {
         if(streetName == null || streetName.isBlank()) return null;
-        return (root, query, cb) ->{
-            return cb.like(root.get("nomVoie"), streetName);
-        };
+        return (root, query, cb) ->
+             cb.like(cb.upper(root.get("nomVoie")), streetName.toUpperCase().trim());
+
     }
     private static Specification<Ban> cityCriteria(String cityName)
     {
         if(cityName == null || cityName.isBlank()) return null;
-        return (root, query, cb) ->{
-            return cb.like(root.get("nomCommune"), cityName);
-        };
+        return (root, query, cb) ->
+             cb.like(cb.upper(root.get("nomCommune")), cityName.toUpperCase().trim());
+
     }
 
     public static Specification<Ban> build(BanSearchRequest criteria)
     {
         return Specification.allOf(
                 Stream.of(
-                                PostalCode(criteria.codePastal()),
+                                postalCode(criteria.codePastal()),
                                 streetCriteria(criteria.rue()),
-                                cityCriteria(criteria.commune())
+                                cityCriteria(criteria.commune()),
+                                numberCriteria(criteria.numero())
+
                         )
                         .filter(Objects::nonNull)
                         .toList()
         );
+    }
+
+    public Specification<Ban> compareString(String chaine)
+    {
+        return (((root, query, criteriaBuilder) -> {
+            Expression<String> numeroRue = criteriaBuilder.concat(criteriaBuilder.concat(root.get("numero").as(String.class)," "), root.get("nomVoie"));
+            Expression<String> numeroRueCode = criteriaBuilder.concat(criteriaBuilder.concat(numeroRue, " "), root.get("codePostal"));
+            Expression<String> addrExp = criteriaBuilder.concat(criteriaBuilder.concat(numeroRueCode, " "), root.get("nomCommune"));
+            return criteriaBuilder.like(criteriaBuilder.upper(addrExp), chaine.toUpperCase() + "%");
+        }));
     }
 }
