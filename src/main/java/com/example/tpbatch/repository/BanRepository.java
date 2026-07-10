@@ -10,12 +10,11 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-
 @Repository
 public interface BanRepository extends JpaRepository<Ban, String>, JpaSpecificationExecutor<Ban> {
 
     Page<Ban> findAll(Specification<Ban> spec, Pageable page);
+
     @Query(value = """
         SELECT a.*
         FROM t_ban a

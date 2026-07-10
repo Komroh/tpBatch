@@ -35,9 +35,4 @@ public class SortTasklet implements Tasklet {
 
         return RepeatStatus.FINISHED;
     }
-
-
-
-
-
 }
