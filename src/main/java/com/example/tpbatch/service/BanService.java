@@ -36,4 +36,9 @@ public class BanService {
         Specification<Ban> spec = new BanSpecification().compareString(chaine);
         return repo.findAll(spec, pageable);
     }
+
+    public Page<Ban> rechercheFullText(String chaine, Pageable pageable)
+    {
+        return repo.search(chaine, pageable);
+    }
 }

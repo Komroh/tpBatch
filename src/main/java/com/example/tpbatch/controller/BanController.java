@@ -55,4 +55,13 @@ public class BanController {
         return service.rechercheChaine(chaine,pageable).getContent();
     }
 
+    @GetMapping("/recherche/fullText")
+    public List<Ban> recherchefullText(
+            @RequestParam String chaine,
+            @PageableDefault(size = 20, sort = "code_postal")Pageable pageable
+    )
+    {
+        return service.rechercheFullText(chaine, pageable).getContent();
+    }
+
 }

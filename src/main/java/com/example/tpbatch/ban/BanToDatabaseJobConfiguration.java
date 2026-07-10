@@ -62,6 +62,7 @@ public class BanToDatabaseJobConfiguration {
                    @Qualifier("deletedStep") Step deletedStep,
                    @Qualifier("updateStep") Step updateStep,
                    @Qualifier("downloadStep") Step downloadCsvStep,
+                   @Qualifier("populateStep") Step populateStep,
                    JobProgressListener listener)
     {
         return new JobBuilder("Job", repo)
@@ -72,6 +73,7 @@ public class BanToDatabaseJobConfiguration {
                 .next(addedStep)
                 .next(deletedStep)
                 .next(updateStep)
+                .next(populateStep)
                 .listener(listener)
                 .build();
     }
@@ -171,6 +173,15 @@ public class BanToDatabaseJobConfiguration {
 
     public Step sortStep(SortTasklet tasklet, JobRepository repo, PlatformTransactionManager transactionManager) {
         return new StepBuilder("Sort Step", repo)
+                .tasklet(tasklet)
+                .transactionManager(transactionManager)
+                .build();
+    }
+
+    @Qualifier("populateStep")
+    @Bean
+    public Step populateStep(PopulateSearchTableTasklet tasklet, JobRepository repo, PlatformTransactionManager transactionManager) {
+        return new StepBuilder("populate Step", repo)
                 .tasklet(tasklet)
                 .transactionManager(transactionManager)
                 .build();

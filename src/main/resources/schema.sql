@@ -11,6 +11,7 @@ DROP TABLE IF EXISTS t_ban_update;
 DROP TABLE IF EXISTS t_ban_added;
 DROP TABLE IF EXISTS t_ban_del;
 DROP TABLE IF EXISTS t_ban_prec;
+DROP TABLE IF EXISTS address_fts;
 
 CREATE TABLE IF NOT EXISTS t_ban(
      id TEXT PRIMARY KEY,
@@ -80,3 +81,5 @@ CREATE TABLE IF NOT EXISTS t_ban_duplicate(
     cad_parcelles TEXT,
     hash INTEGER
 );
+
+CREATE VIRTUAL TABLE IF NOT EXISTS address_fts USING fts5(numero, nom_voie, code_postal, nom_commune, content='t_ban' )
