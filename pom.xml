@@ -104,7 +104,28 @@
 			<version>0.6.6</version>
 			<scope>compile</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+		</dependency>
 	</dependencies>
+	<profiles>
+		<profile>
+			<id>postgresql</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<spring.profiles.active>postgresql</spring.profiles.active>
+			</properties>
+		</profile>
+		<profile>
+			<id>sqlite</id>
+			<properties>
+				<spring.profiles.active>sqlite</spring.profiles.active>
+			</properties>
+		</profile>
+	</profiles>
 	<build>
 		<plugins>
 			<plugin>

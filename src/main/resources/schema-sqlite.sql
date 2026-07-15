@@ -37,21 +37,7 @@ CREATE TABLE IF NOT EXISTS t_ban(
      source_nom_voie TEXT,
      certification_commune INTEGER,
      cad_parcelles TEXT,
-     hash INTEGER
-);
-
-
-CREATE TABLE IF NOT EXISTS t_ban_update(
-     id TEXT PRIMARY KEY
-);
-
-CREATE TABLE IF NOT EXISTS t_ban_added(
-     id TEXT PRIMARY KEY
-
-);
-
-CREATE TABLE IF NOT EXISTS t_ban_del(
-     id TEXT PRIMARY KEY
+     hash BIGINT
 );
 
 CREATE TABLE IF NOT EXISTS t_ban_duplicate(
@@ -79,7 +65,7 @@ CREATE TABLE IF NOT EXISTS t_ban_duplicate(
     source_nom_voie TEXT,
     certification_commune INTEGER,
     cad_parcelles TEXT,
-    hash INTEGER
+    hash BIGINT
 );
 
 CREATE VIRTUAL TABLE IF NOT EXISTS address_fts USING fts5(numero, nom_voie, code_postal, nom_commune, content='t_ban' )

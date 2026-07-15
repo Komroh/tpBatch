@@ -22,7 +22,7 @@ public class IdentifyUpdateTasklet implements Tasklet {
 
         String sql = """
  
-               INSERT INTO t_ban_update(id)
+               CREATE TABLE t_ban_update AS
                    SELECT b.id
                    FROM t_ban b
                    WHERE EXISTS (

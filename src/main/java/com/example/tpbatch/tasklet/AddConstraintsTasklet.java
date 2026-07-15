@@ -11,23 +11,26 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class DeletedTasklet implements Tasklet {
+public class AddConstraintsTasklet implements Tasklet {
 
     private final JdbcTemplate jdbcTemplate;
 
     @Override
     public @Nullable RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-        String sql = """
-                CREATE TABLE t_ban_del AS
-                    SELECT p.id
-                    FROM t_ban_prec p
-                    WHERE NOT EXISTS(SELECT 1 FROM t_ban b WHERE b.id = p.id);
-            
-            """;
+        jdbcTemplate.execute("""
+        ALTER TABLE t_ban_added
+        ADD PRIMARY KEY (id)
+    """);
 
-        int deleted = jdbcTemplate.update(sql);
+        jdbcTemplate.execute("""
+        ALTER TABLE t_ban_update
+        ADD PRIMARY KEY (id)
+    """);
 
-        contribution.incrementWriteCount(deleted);
+        jdbcTemplate.execute("""
+        ALTER TABLE t_ban_del
+        ADD PRIMARY KEY (id)
+    """);
 
         return RepeatStatus.FINISHED;
     }

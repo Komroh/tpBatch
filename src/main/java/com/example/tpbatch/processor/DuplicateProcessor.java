@@ -41,8 +41,8 @@ public class DuplicateProcessor implements ItemProcessor<Ban, BanDto>, ChunkList
 
         if(chunkAddresses.containsKey(addrId)) {
             doublon = chunkAddresses.get(addrId);
-        } else if (banRepo.existsById(addrId)) {
-            doublon = banRepo.findById(addrId).orElseThrow();
+        } else {
+            doublon = banRepo.findById(addrId).orElse(null);
         }
 
         if(doublon != null) {
@@ -50,7 +50,7 @@ public class DuplicateProcessor implements ItemProcessor<Ban, BanDto>, ChunkList
                 log.debug("Filtrage Doublon pur : " + addrId);
                 return null;
             } else {
-                log.info("Doublon avec champs différents : " + addrId);
+                log.debug("Doublon avec champs différents : " + addrId);
                 addressDto.setIsDuplicate(true);
             }
         }

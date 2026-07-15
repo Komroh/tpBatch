@@ -113,7 +113,7 @@ Le job Batch exécute les étapes dans cet ordre :
 ##  Base de données
 
 ### Schéma
-La base de données est initialisée via `schema.sql` :
+La base de données est initialisée via `schema-sqlite.sql` :
 - Table **BAN** : Stockage des adresses
 - Colonnes : id, id_fantoir, numero, nom_voie, code_postal, code_insee, etc.
 

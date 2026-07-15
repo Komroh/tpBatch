@@ -16,20 +16,17 @@ import org.springframework.stereotype.Component;
 @Component
 public class BanItemReader {
 
-    @Value("${tempFile}")
-    private String  file;
+
     @Bean
     @StepScope
     public FlatFileItemReader<Ban>  csvReader(
-            @Value("#{stepExecutionContext[first_line]}") final Long firstLine,
-            @Value("#{stepExecutionContext[last_line]}") final Long lastLine
+            @Value("#{stepExecutionContext[file]}") String file
     )
     {
         return new FlatFileItemReaderBuilder<Ban>()
                 .name("BanCsvReader")
-                .linesToSkip(Math.toIntExact(firstLine))
-                .maxItemCount(Math.toIntExact(lastLine))
                 .resource(new FileSystemResource(file))
+                .linesToSkip(1)
                 .delimited()
                 .delimiter(";")
                 .names("id","id_fantoir","numero","rep","nom_voie",

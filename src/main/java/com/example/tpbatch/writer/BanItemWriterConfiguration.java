@@ -12,7 +12,7 @@ import javax.sql.DataSource;
 public class BanItemWriterConfiguration {
 
     @Bean
-    public JdbcBatchItemWriter<BanDto> banJdbcItemWriter(DataSource ds)
+    public JdbcBatchItemWriter<BanDto> banWriter(DataSource ds)
     {
        return new JdbcBatchItemWriterBuilder<BanDto>()
                .dataSource(ds)
@@ -101,7 +101,7 @@ public class BanItemWriterConfiguration {
 
     }
     @Bean
-    public JdbcBatchItemWriter<BanDto> duplicateJdbcItemWriter(DataSource ds)
+    public JdbcBatchItemWriter<BanDto> duplicateWriter(DataSource ds)
     {
         return new JdbcBatchItemWriterBuilder<BanDto>()
                 .dataSource(ds)

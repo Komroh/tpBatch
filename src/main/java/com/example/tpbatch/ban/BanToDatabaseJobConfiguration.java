@@ -4,6 +4,7 @@ import com.example.tpbatch.Dto.BanDto;
 import com.example.tpbatch.Entity.Ban;
 
 import com.example.tpbatch.classifier.BanClassifier;
+import com.example.tpbatch.listener.BanItemProcessListener;
 import com.example.tpbatch.listener.JobProgressListener;
 
 import com.example.tpbatch.partitioner.CsvStepPartitionner;
@@ -12,6 +13,7 @@ import com.example.tpbatch.processor.DuplicateProcessor;
 import com.example.tpbatch.reader.BanItemReader;
 import com.example.tpbatch.tasklet.*;
 import com.example.tpbatch.writer.BanItemWriterConfiguration;
+import com.example.tpbatch.writer.BanRoutingWriter;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.builder.JobBuilder;
@@ -25,18 +27,18 @@ import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.infrastructure.item.support.ClassifierCompositeItemWriter;
 import org.springframework.batch.infrastructure.item.support.CompositeItemProcessor;
 import org.springframework.batch.infrastructure.item.validator.BeanValidatingItemProcessor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
 import java.util.List;
-
-import static com.example.tpbatch.utils.Constants.LONG_OVERRIDE;
 
 
 @Configuration
@@ -62,20 +64,31 @@ public class BanToDatabaseJobConfiguration {
                    @Qualifier("deletedStep") Step deletedStep,
                    @Qualifier("updateStep") Step updateStep,
                    @Qualifier("downloadStep") Step downloadCsvStep,
-                   @Qualifier("populateStep") Step populateStep,
+                   @Qualifier("populateStep") @Autowired(required = false) Step populateStep,
+                   @Qualifier("addConstraintsStep") @Autowired(required = false) Step addConstraintsStep,
                    JobProgressListener listener)
     {
-        return new JobBuilder("Job", repo)
-                .start(downloadCsvStep)
-                .next(sortStep)
+        JobBuilder builder = new JobBuilder("Job", repo);
+
+                var flow = builder
+                //.start(downloadCsvStep)
+                .start(sortStep)
                 .next(initTableStep)
                 .next(loadCsvStepPartitioner)
                 .next(addedStep)
                 .next(deletedStep)
-                .next(updateStep)
-                .next(populateStep)
-                .listener(listener)
-                .build();
+                .next(updateStep);
+
+        if (populateStep != null) {
+            flow.next(populateStep);
+        }
+        if(addConstraintsStep != null)
+        {
+            flow.next(addConstraintsStep);
+        }
+
+        return flow.listener(listener).build();
+
     }
 
     @Bean
@@ -91,7 +104,7 @@ public class BanToDatabaseJobConfiguration {
         TaskExecutorPartitionHandler handler = new TaskExecutorPartitionHandler();
         handler.setTaskExecutor(taskExecutor()); // Parallel execution
         handler.setStep(workerStep); // Worker step
-        handler.setGridSize(1); // Number of partitions
+        handler.setGridSize(4); // Number of partitions
         return handler;
     }
 
@@ -100,6 +113,7 @@ public class BanToDatabaseJobConfiguration {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(4);
         executor.setMaxPoolSize(4);
+        executor.setQueueCapacity(0);
         executor.initialize();
         return executor;
     }
@@ -107,17 +121,19 @@ public class BanToDatabaseJobConfiguration {
     @Bean
     public Step insertStep(JobRepository repo, BanItemReader banReader,
                                CompositeItemProcessor<Ban, BanDto>  compositeProcessor,
-                               ClassifierCompositeItemWriter<BanDto> classifierBanCompositeItemWriter,
+                               BanRoutingWriter writer,
                                PlatformTransactionManager transactionManager,
-                               DuplicateProcessor duplicationProcessor)
+                               BanItemProcessListener itemCountListener,
+                               DuplicateProcessor addressMapListener)
     {
         return new StepBuilder("Insert step", repo)
                 .<Ban,BanDto>chunk(chunkSize)
-                .reader(banReader.csvReader(LONG_OVERRIDE, LONG_OVERRIDE))
+                .reader(banReader.csvReader(""))
                 .processor(compositeProcessor)
-                .writer(classifierBanCompositeItemWriter)
+                .writer(writer)
                 .transactionManager(transactionManager)
-                .listener(duplicationProcessor)
+                .listener(addressMapListener)
+                .listener(itemCountListener)
                 .build();
     }
 
@@ -180,8 +196,19 @@ public class BanToDatabaseJobConfiguration {
 
     @Qualifier("populateStep")
     @Bean
+    @Profile("sqlite")
     public Step populateStep(PopulateSearchTableTasklet tasklet, JobRepository repo, PlatformTransactionManager transactionManager) {
         return new StepBuilder("populate Step", repo)
+                .tasklet(tasklet)
+                .transactionManager(transactionManager)
+                .build();
+    }
+
+    @Qualifier("addConstraintsStep")
+    @Bean
+    @Profile("postgresql")
+    public Step addConstraintsStep(AddConstraintsTasklet tasklet, JobRepository repo, PlatformTransactionManager transactionManager) {
+        return new StepBuilder("addConstraintsStep Step", repo)
                 .tasklet(tasklet)
                 .transactionManager(transactionManager)
                 .build();
@@ -214,7 +241,7 @@ public class BanToDatabaseJobConfiguration {
     @Bean
     public ClassifierCompositeItemWriter<BanDto> classifierBanCompositeItemWriter(DataSource ds, BanItemWriterConfiguration writers) throws Exception {
         ClassifierCompositeItemWriter<BanDto> compositeItemWriter = new ClassifierCompositeItemWriter<>();
-        compositeItemWriter.setClassifier(new BanClassifier(writers.banJdbcItemWriter(ds), writers.duplicateJdbcItemWriter(ds)));
+        compositeItemWriter.setClassifier(new BanClassifier(writers.banWriter(ds), writers.duplicateWriter(ds)));
         return compositeItemWriter;
     }
 

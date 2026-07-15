@@ -54,7 +54,7 @@ public class Ban{
     private String sourceNomVoie;
     @Column(name = "certification_commune")
     private Integer certificationCommune;
-    @Column(name = "cad_parcelles")
+    @Column(name = "cad_parcelles", length = 500)
     private String cadParcelles;
     @Column(name = "hash")
     private long hash;
