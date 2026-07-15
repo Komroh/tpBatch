@@ -39,6 +39,7 @@ public class BanService {
 
     public Page<Ban> rechercheFullText(String chaine, Pageable pageable)
     {
+        chaine = chaine.replaceAll("-", " ");
         return repo.search(chaine, pageable);
     }
 }
