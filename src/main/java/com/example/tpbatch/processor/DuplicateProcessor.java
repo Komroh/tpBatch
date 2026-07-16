@@ -3,6 +3,7 @@ package com.example.tpbatch.processor;
 import com.example.tpbatch.Dto.BanDto;
 import com.example.tpbatch.Entity.Ban;
 import com.example.tpbatch.repository.BanRepository;
+import com.example.tpbatch.utils.HashCalcul;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -36,8 +37,11 @@ public class DuplicateProcessor implements ItemProcessor<Ban, BanDto>, ChunkList
     @Override
     public @Nullable BanDto process(Ban address) throws Exception {
         String addrId = address.getId();
-        BanDto addressDto = BanDto.from(address);
+
         Ban doublon = null;
+
+        address.setHash(HashCalcul.calculHash(address));
+        BanDto addressDto = BanDto.from(address);
 
         if(chunkAddresses.containsKey(addrId)) {
             doublon = chunkAddresses.get(addrId);

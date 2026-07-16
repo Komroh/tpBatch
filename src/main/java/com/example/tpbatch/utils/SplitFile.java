@@ -9,7 +9,7 @@ public class SplitFile {
     public static void splitFile(String fileName,
                                  String  outputDir,
                                  Integer numberOfPart) throws IOException {
-        int totalLines = getNoOfLines(fileName) - 1;
+        int totalLines = getNoOfLines(fileName);
         int linePerFile = (int) Math.ceil((double) (totalLines) / numberOfPart);
 
         try (BufferedReader reader = Files.newBufferedReader(Path.of(fileName))) {

@@ -1,7 +1,6 @@
 package com.example.tpbatch.processor;
 
 import com.example.tpbatch.Dto.BanDto;
-import com.example.tpbatch.utils.HashCalcul;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -20,7 +19,6 @@ public class BanProcessor implements ItemProcessor<BanDto, BanDto> {
     @Override
     public @Nullable BanDto process(@NonNull BanDto address) throws Exception {
 
-        address.setHash(HashCalcul.calculHash(address));
         if(typeCriteria.isEmpty() && criteria.isEmpty())
         {
             return address;

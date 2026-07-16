@@ -6,15 +6,13 @@ import org.springframework.batch.infrastructure.item.ExecutionContext;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.LineNumberReader;
 import java.util.HashMap;
 import java.util.Map;
 
 @Component
 public class CsvStepPartitionner implements Partitioner {
-    @Value("${tempFile}")
+    @Value("${file}")
     private String filename;
 
     @Value("${outputDir}")
@@ -42,19 +40,6 @@ public class CsvStepPartitionner implements Partitioner {
         }
 
         return partitions;
-    }
-
-    private int getNoOfLines(String fileName) throws IOException {
-
-        try (LineNumberReader reader =
-                     new LineNumberReader(new FileReader(fileName))) {
-
-            while (reader.readLine() != null) {
-                // lecture jusqu'à la fin
-            }
-
-            return reader.getLineNumber();
-        }
     }
 
 }

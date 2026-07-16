@@ -71,8 +71,8 @@ public class BanToDatabaseJobConfiguration {
         JobBuilder builder = new JobBuilder("Job", repo);
 
                 var flow = builder
-                //.start(downloadCsvStep)
-                .start(sortStep)
+                .start(downloadCsvStep)
+                .next(sortStep)
                 .next(initTableStep)
                 .next(loadCsvStepPartitioner)
                 .next(addedStep)
@@ -104,7 +104,7 @@ public class BanToDatabaseJobConfiguration {
         TaskExecutorPartitionHandler handler = new TaskExecutorPartitionHandler();
         handler.setTaskExecutor(taskExecutor()); // Parallel execution
         handler.setStep(workerStep); // Worker step
-        handler.setGridSize(4); // Number of partitions
+        handler.setGridSize(1); // Number of partitions
         return handler;
     }
 
@@ -229,9 +229,11 @@ public class BanToDatabaseJobConfiguration {
         CompositeItemProcessor<Ban, BanDto> composite =
                 new CompositeItemProcessor<>();
         composite.setDelegates(List.of(
+
                 duplicationProcessor,
                 validator,
                 processor
+
         ));
         return composite;
 

@@ -1,37 +1,36 @@
 package com.example.tpbatch.utils;
 
-import com.example.tpbatch.Dto.BanDto;
-
 import java.nio.charset.StandardCharsets;
+import com.example.tpbatch.Entity.Ban;
 import net.openhft.hashing.LongHashFunction;
 
 public class HashCalcul {
 
-    public static long calculHash(BanDto b) {
+    public static long calculHash(Ban b) {
 
         String valeur = String.join("|",
-                nullToEmpty(b.getId_fantoir()),
+                nullToEmpty(b.getId()),
                 String.valueOf(b.getNumero()),
                 nullToEmpty(b.getRep()),
-                nullToEmpty(b.getNom_voie()),
-                nullToEmpty(b.getCode_postal()),
-                nullToEmpty(b.getCode_insee()),
-                nullToEmpty(b.getNom_commune()),
-                nullToEmpty(b.getCode_insee_ancienne_commune()),
-                nullToEmpty(b.getNom_ancienne_commune()),
+                nullToEmpty(b.getNomVoie()),
+                nullToEmpty(b.getCodePostal()),
+                nullToEmpty(b.getCodeInsee()),
+                nullToEmpty(b.getNomCommune()),
+                nullToEmpty(b.getCodeInseeAncienneCommune()),
+                nullToEmpty(b.getNomAncienneCommune()),
                 String.valueOf(b.getX()),
                 String.valueOf(b.getY()),
                 String.valueOf(b.getLon()),
                 String.valueOf(b.getLat()),
-                nullToEmpty(b.getType_position()),
+                nullToEmpty(b.getTypePosition()),
                 nullToEmpty(b.getAlias()),
-                nullToEmpty(b.getNom_ld()),
-                nullToEmpty(b.getLibelle_acheminement()),
-                nullToEmpty(b.getNom_afnor()),
-                nullToEmpty(b.getSource_position()),
-                nullToEmpty(b.getSource_nom_voie()),
-                String.valueOf(b.getCertification_commune()),
-                nullToEmpty(b.getCad_parcelles())
+                nullToEmpty(b.getNomLd()),
+                nullToEmpty(b.getLibelleAcheminement()),
+                nullToEmpty(b.getNomAfnor()),
+                nullToEmpty(b.getSourcePosition()),
+                nullToEmpty(b.getSourceNomVoie()),
+                String.valueOf(b.getCertificationCommune()),
+                nullToEmpty(b.getCadParcelles())
     );
 
         return LongHashFunction.xx3().hashBytes(valeur.getBytes(StandardCharsets.UTF_8));
