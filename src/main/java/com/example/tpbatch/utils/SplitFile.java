@@ -9,55 +9,38 @@ public class SplitFile {
     public static void splitFile(String fileName,
                                  String  outputDir,
                                  Integer numberOfPart) throws IOException {
-        int totalLines = getNoOfLines(fileName);
-        int linePerFile = (int) Math.ceil((double) (totalLines) / numberOfPart);
+        Path outputPath = Path.of(outputDir);
 
         try (BufferedReader reader = Files.newBufferedReader(Path.of(fileName))) {
-            BufferedWriter writer = null;
 
-            int currentLine = 0;
-            int currentPart = 0;
+            String header = reader.readLine();
+
+            BufferedWriter[] writers = new BufferedWriter[numberOfPart];
+
+            for (int i = 0; i < numberOfPart; i++) {
+                Path output = outputPath.resolve("ban_" + i + ".csv");
+                writers[i] = Files.newBufferedWriter(output);
+                writers[i].write(header);
+                writers[i].newLine();
+            }
 
             String line;
-            String header = reader.readLine();
-            Path outputPath = Path.of(outputDir);
-            while((line = reader.readLine()) !=null){
-                if(currentLine % linePerFile == 0)
-                {
-                    if (writer != null) {
-                        writer.close();
-                    }
-                    Path output = outputPath.resolve("ban_"+ currentPart + ".csv");
-                    writer = Files.newBufferedWriter(output);
 
-                    writer.write(header);
-                    writer.newLine();
+            while ((line = reader.readLine()) != null) {
 
-                    currentPart++;
-                }
+                String[] columns = line.split(";", -1);
 
-                writer.write(line);
-                writer.newLine();
+                String id = columns[0]; // première colonne = id
 
-                currentLine++;
+                int partition = Math.floorMod(id.hashCode(), numberOfPart);
+
+                writers[partition].write(line);
+                writers[partition].newLine();
             }
-            if (writer != null) {
+
+            for (BufferedWriter writer : writers) {
                 writer.close();
             }
-        }
-    }
-
-
-    private static int getNoOfLines(String fileName) throws IOException {
-
-        try (LineNumberReader reader =
-                     new LineNumberReader(new FileReader(fileName))) {
-
-            while (reader.readLine() != null) {
-                // lecture jusqu'à la fin
-            }
-
-            return reader.getLineNumber();
         }
     }
 }

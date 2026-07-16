@@ -48,6 +48,10 @@ public class BanToDatabaseJobConfiguration {
 
     @Value("${chunkSize}")
     private Integer chunkSize;
+
+    @Value("${numberOfThread}")
+    private Integer numberOfThread;
+
     @Bean
     public JobOperatorFactoryBean jobOperator(JobRepository jobRepository) {
         JobOperatorFactoryBean jobOperatorFactoryBean = new JobOperatorFactoryBean();
@@ -104,15 +108,15 @@ public class BanToDatabaseJobConfiguration {
         TaskExecutorPartitionHandler handler = new TaskExecutorPartitionHandler();
         handler.setTaskExecutor(taskExecutor()); // Parallel execution
         handler.setStep(workerStep); // Worker step
-        handler.setGridSize(1); // Number of partitions
+        handler.setGridSize(numberOfThread); // Number of partitions
         return handler;
     }
 
     @Bean
     public TaskExecutor taskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(4);
-        executor.setMaxPoolSize(4);
+        executor.setCorePoolSize(numberOfThread);
+        executor.setMaxPoolSize(numberOfThread);
         executor.setQueueCapacity(0);
         executor.initialize();
         return executor;
