@@ -29,6 +29,6 @@ public class ArchiveTasklet implements Tasklet {
         Path fileToMove = Paths.get(FILE_PATH);
         Path targetPath = Paths.get(ARCHIVE_PATH, archiveFileName);
         Files.move(fileToMove, targetPath);
-        return null;
+        return RepeatStatus.FINISHED;
     }
 }

@@ -72,6 +72,7 @@ public class BanToDatabaseJobConfiguration {
                    @Qualifier("addConstraintsStep") @Autowired(required = false) Step addConstraintsStep,
                    @Qualifier("archiveStep") Step archiveStep,
                    @Qualifier("reportStep") Step reportStep,
+                   @Qualifier("errorReportStep") Step errorReportStep,
                    JobProgressListener listener)
     {
         JobBuilder builder = new JobBuilder("Job", repo);
@@ -80,12 +81,12 @@ public class BanToDatabaseJobConfiguration {
                 .listener(listener)
                 .start(downloadCsvStep)
                     .on("MULTIPLE_FILES_FOUND")
-                        .to(reportStep)
+                        .to(errorReportStep)
                         .on("*").fail()
 
                     .from(downloadCsvStep)
                         .on("WRONG_FILE_FORMAT")
-                            .to(reportStep)
+                            .to(errorReportStep)
                             .on("*").fail()
 
                     .from(downloadCsvStep)
@@ -111,8 +112,9 @@ public class BanToDatabaseJobConfiguration {
         }
 
         return flow.next(archiveStep)
-                   .next(reportStep).build().build();
-
+                .next(reportStep)
+                .build()
+                .build();
     }
 
     @Bean
@@ -236,7 +238,7 @@ public class BanToDatabaseJobConfiguration {
                 .transactionManager(transactionManager)
                 .build();
     }
-    @Qualifier("ArchiveStep")
+    @Qualifier("archiveStep")
     @Bean
     public Step archiveStep(ArchiveTasklet tasklet, JobRepository repo, PlatformTransactionManager transactionManager) {
         return new StepBuilder("archive Step", repo)
@@ -245,10 +247,19 @@ public class BanToDatabaseJobConfiguration {
                 .build();
     }
 
-    @Qualifier("ReportStep")
+    @Qualifier("reportStep")
     @Bean
     public Step reportStep(GenerateReportTasklet tasklet, JobRepository repo, PlatformTransactionManager transactionManager) {
         return new StepBuilder("report Step", repo)
+                .tasklet(tasklet)
+                .transactionManager(transactionManager)
+                .build();
+    }
+
+    @Qualifier("errorReportStep")
+    @Bean
+    public Step errorReportStep(GenerateReportTasklet tasklet, JobRepository repo, PlatformTransactionManager transactionManager) {
+        return new StepBuilder("error report Step", repo)
                 .tasklet(tasklet)
                 .transactionManager(transactionManager)
                 .build();

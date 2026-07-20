@@ -55,8 +55,11 @@ public class RetrieveFileTasklet implements Tasklet {
         if(count > 1)
         {
             log.error("Plusieurs fichiers csv trouvés");
-            contribution.getStepExecution().setExitStatus(new ExitStatus("MULTIPLE_FILES_FOUND"));
-            contribution.getStepExecution().getJobExecution().setExitStatus(new ExitStatus("MULTIPLE_FILES_FOUND"));
+            contribution.setExitStatus(new ExitStatus("MULTIPLE_FILES_FOUND"));
+            contribution.getStepExecution()
+                    .getJobExecution()
+                    .getExecutionContext()
+                    .putString("retrieveStatus", "MULTIPLE_FILES_FOUND");
             contribution.getStepExecution().getJobExecution().setStatus(BatchStatus.FAILED);
             return RepeatStatus.FINISHED;
         }
@@ -77,8 +80,11 @@ public class RetrieveFileTasklet implements Tasklet {
                         StandardCopyOption.REPLACE_EXISTING);
             }catch(Exception e) {
                 log.error("Erreur lors du téléchargement de fichier");
-                contribution.getStepExecution().setExitStatus(new ExitStatus("NO_INPUT_FILE"));
-                contribution.getStepExecution().getJobExecution().setExitStatus(new ExitStatus("NO_INPUT_FILE"));
+                contribution.getStepExecution()
+                        .getJobExecution()
+                        .getExecutionContext()
+                        .putString("retrieveStatus", "NO_INPUT_FILE");
+                contribution.setExitStatus(new ExitStatus("NO_INPUT_FILE"));
                 contribution.getStepExecution().getJobExecution().setStatus(BatchStatus.COMPLETED);
                 return RepeatStatus.FINISHED;
             }
@@ -98,7 +104,11 @@ public class RetrieveFileTasklet implements Tasklet {
         }
         else  {
             log.error("Format du fichier non valide");
-            contribution.getStepExecution().setExitStatus(new ExitStatus("WRONG_FILE_FORMAT"));
+            contribution.setExitStatus(new ExitStatus("WRONG_FILE_FORMAT"));
+            contribution.getStepExecution()
+                    .getJobExecution()
+                    .getExecutionContext()
+                    .putString("retrieveStatus", "WRONG_FILE_FORMAT");
             contribution.getStepExecution().getJobExecution().setExitStatus(new ExitStatus("WRONG_FILE_FORMAT"));
             contribution.getStepExecution().getJobExecution().setStatus(BatchStatus.FAILED);
         }
