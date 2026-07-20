@@ -61,27 +61,46 @@ public class BanToDatabaseJobConfiguration {
 
     @Bean
     public Job job(JobRepository repo,
+                   @Qualifier("downloadStep") Step downloadCsvStep,
+                   @Qualifier("sortStep") Step sortStep,
                    @Qualifier("initStep") Step initTableStep,
                    Step loadCsvStepPartitioner,
-                   @Qualifier("sortStep") Step sortStep,
                    @Qualifier("addedStep") Step addedStep,
                    @Qualifier("deletedStep") Step deletedStep,
                    @Qualifier("updateStep") Step updateStep,
-                   @Qualifier("downloadStep") Step downloadCsvStep,
                    @Qualifier("populateStep") @Autowired(required = false) Step populateStep,
                    @Qualifier("addConstraintsStep") @Autowired(required = false) Step addConstraintsStep,
+                   @Qualifier("archiveStep") Step archiveStep,
+                   @Qualifier("reportStep") Step reportStep,
                    JobProgressListener listener)
     {
         JobBuilder builder = new JobBuilder("Job", repo);
 
                 var flow = builder
+                .listener(listener)
                 .start(downloadCsvStep)
-                .next(sortStep)
-                .next(initTableStep)
-                .next(loadCsvStepPartitioner)
-                .next(addedStep)
-                .next(deletedStep)
-                .next(updateStep);
+                    .on("MULTIPLE_FILES_FOUND")
+                        .to(reportStep)
+                        .on("*").fail()
+
+                    .from(downloadCsvStep)
+                        .on("WRONG_FILE_FORMAT")
+                            .to(reportStep)
+                            .on("*").fail()
+
+                    .from(downloadCsvStep)
+                        .on("NO_INPUT_FILE")
+                            .to(reportStep)
+                            .on("*").end()
+
+                .from(downloadCsvStep)
+                    .on("*")
+                        .to(sortStep)
+                        .next(initTableStep)
+                        .next(loadCsvStepPartitioner)
+                        .next(addedStep)
+                        .next(deletedStep)
+                        .next(updateStep);
 
         if (populateStep != null) {
             flow.next(populateStep);
@@ -91,7 +110,8 @@ public class BanToDatabaseJobConfiguration {
             flow.next(addConstraintsStep);
         }
 
-        return flow.listener(listener).build();
+        return flow.next(archiveStep)
+                   .next(reportStep).build().build();
 
     }
 
@@ -144,45 +164,8 @@ public class BanToDatabaseJobConfiguration {
 
     @Qualifier("downloadStep")
     @Bean
-    public Step downloadCsvStep(DownloadTasklet tasklet, JobRepository repo, PlatformTransactionManager transactionManager) {
-        return new StepBuilder("downloadStep", repo)
-                .tasklet(tasklet)
-                .transactionManager(transactionManager)
-                .build();
-    }
-
-    @Qualifier("initStep")
-    @Bean
-    public Step initTableStep(InitTableTasklet tasklet, JobRepository repo, PlatformTransactionManager transactionManager) {
-        return new StepBuilder("Init Step", repo)
-                .tasklet(tasklet)
-                .transactionManager(transactionManager)
-                .build();
-    }
-
-
-    @Qualifier("updateStep")
-    @Bean
-    public Step updateStep(IdentifyUpdateTasklet tasklet, JobRepository repo, PlatformTransactionManager transactionManager) {
-        return new StepBuilder("Update Step", repo)
-                .tasklet(tasklet)
-                .transactionManager(transactionManager)
-                .build();
-    }
-
-    @Qualifier("deletedStep")
-    @Bean
-    public Step deleteStep(DeletedTasklet tasklet, JobRepository repo, PlatformTransactionManager transactionManager) {
-        return new StepBuilder("Delete Step", repo)
-                .tasklet(tasklet)
-                .transactionManager(transactionManager)
-                .build();
-    }
-
-    @Qualifier("addedStep")
-    @Bean
-    public Step addedStep(AddedTasklet tasklet, JobRepository repo, PlatformTransactionManager transactionManager) {
-        return new StepBuilder("Added Step", repo)
+    public Step downloadCsvStep(RetrieveFileTasklet tasklet, JobRepository repo, PlatformTransactionManager transactionManager) {
+        return new StepBuilder("Download Step", repo)
                 .tasklet(tasklet)
                 .transactionManager(transactionManager)
                 .build();
@@ -198,6 +181,42 @@ public class BanToDatabaseJobConfiguration {
                 .build();
     }
 
+    @Qualifier("initStep")
+    @Bean
+    public Step initTableStep(InitTableTasklet tasklet, JobRepository repo, PlatformTransactionManager transactionManager) {
+        return new StepBuilder("Init Step", repo)
+                .tasklet(tasklet)
+                .transactionManager(transactionManager)
+                .build();
+    }
+
+    @Qualifier("addedStep")
+    @Bean
+    public Step addedStep(AddedTasklet tasklet, JobRepository repo, PlatformTransactionManager transactionManager) {
+        return new StepBuilder("Added Step", repo)
+                .tasklet(tasklet)
+                .transactionManager(transactionManager)
+                .build();
+    }
+    @Qualifier("deletedStep")
+    @Bean
+    public Step deleteStep(DeletedTasklet tasklet, JobRepository repo, PlatformTransactionManager transactionManager) {
+        return new StepBuilder("Delete Step", repo)
+                .tasklet(tasklet)
+                .transactionManager(transactionManager)
+                .build();
+    }
+
+    @Qualifier("updateStep")
+    @Bean
+    public Step updateStep(IdentifyUpdateTasklet tasklet, JobRepository repo, PlatformTransactionManager transactionManager) {
+        return new StepBuilder("Update Step", repo)
+                .tasklet(tasklet)
+                .transactionManager(transactionManager)
+                .build();
+    }
+
+
     @Qualifier("populateStep")
     @Bean
     @Profile("sqlite")
@@ -212,7 +231,24 @@ public class BanToDatabaseJobConfiguration {
     @Bean
     @Profile("postgresql")
     public Step addConstraintsStep(AddConstraintsTasklet tasklet, JobRepository repo, PlatformTransactionManager transactionManager) {
-        return new StepBuilder("addConstraintsStep Step", repo)
+        return new StepBuilder("add Constraints Step", repo)
+                .tasklet(tasklet)
+                .transactionManager(transactionManager)
+                .build();
+    }
+    @Qualifier("ArchiveStep")
+    @Bean
+    public Step archiveStep(ArchiveTasklet tasklet, JobRepository repo, PlatformTransactionManager transactionManager) {
+        return new StepBuilder("archive Step", repo)
+                .tasklet(tasklet)
+                .transactionManager(transactionManager)
+                .build();
+    }
+
+    @Qualifier("ReportStep")
+    @Bean
+    public Step reportStep(GenerateReportTasklet tasklet, JobRepository repo, PlatformTransactionManager transactionManager) {
+        return new StepBuilder("report Step", repo)
                 .tasklet(tasklet)
                 .transactionManager(transactionManager)
                 .build();

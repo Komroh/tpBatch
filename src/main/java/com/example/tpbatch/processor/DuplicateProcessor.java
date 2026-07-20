@@ -2,8 +2,10 @@ package com.example.tpbatch.processor;
 
 import com.example.tpbatch.Dto.BanDto;
 import com.example.tpbatch.Entity.Ban;
+import com.example.tpbatch.metrics.BanMetrics;
 import com.example.tpbatch.repository.BanRepository;
 import com.example.tpbatch.utils.HashCalcul;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -26,6 +28,8 @@ public class DuplicateProcessor implements ItemProcessor<Ban, BanDto>, ChunkList
             LoggerFactory.getLogger(DuplicateProcessor.class);
 
     private final BanRepository banRepo;
+    private final BanMetrics banMetrics;
+    private final MeterRegistry meterRegistry;
 
     private final Map<String, Ban> chunkAddresses = new HashMap<>();
 
@@ -52,9 +56,11 @@ public class DuplicateProcessor implements ItemProcessor<Ban, BanDto>, ChunkList
         if(doublon != null) {
             if (address.equals(doublon)) {
                 log.debug("Filtrage Doublon pur : " + addrId);
+                banMetrics.incrementDuplicateSame();
                 return null;
             } else {
                 log.debug("Doublon avec champs différents : " + addrId);
+                banMetrics.incrementDuplicateDiff();
                 addressDto.setIsDuplicate(true);
             }
         }
