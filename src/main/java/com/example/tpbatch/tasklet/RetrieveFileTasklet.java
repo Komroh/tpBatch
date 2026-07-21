@@ -13,9 +13,9 @@ import org.springframework.stereotype.Component;
 
 import java.io.*;
 import java.math.BigInteger;
+import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
-import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -69,10 +69,13 @@ public class RetrieveFileTasklet implements Tasklet {
 
         if (! file.exists()) {
             URL url = new URI(urlCsv).toURL();
-            URLConnection connection = url.openConnection();
-
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestProperty(
+                    "User-Agent",
+                    "Mozilla/5.0"
+            );
             connection.setConnectTimeout(5000);
-            connection.setReadTimeout(10000);
+            connection.setReadTimeout(60000);
 
             try (InputStream in = connection.getInputStream()) {
                 Files.copy(in,
@@ -112,7 +115,10 @@ public class RetrieveFileTasklet implements Tasklet {
             contribution.getStepExecution().getJobExecution().setExitStatus(new ExitStatus("WRONG_FILE_FORMAT"));
             contribution.getStepExecution().getJobExecution().setStatus(BatchStatus.FAILED);
         }
-
+        contribution.getStepExecution()
+                .getJobExecution()
+                .getExecutionContext()
+                .putString("retrieveStatus", "COMPLETED");
         Files.deleteIfExists(zipPath);
         return RepeatStatus.FINISHED;
     }

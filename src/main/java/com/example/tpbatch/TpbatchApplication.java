@@ -36,6 +36,7 @@ public class TpbatchApplication implements CommandLineRunner {
 		JobParameters jobParameters= new JobParametersBuilder()
 				.addString("typeCriteria", typeCriteria)
 				.addString("criteria", criteria)
+				.addLong("timestamp", System.currentTimeMillis())
 				.toJobParameters();
 
 		jobOperator.start(job,jobParameters);

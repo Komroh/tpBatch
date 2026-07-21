@@ -14,7 +14,6 @@ import com.example.tpbatch.reader.BanItemReader;
 import com.example.tpbatch.tasklet.*;
 import com.example.tpbatch.writer.BanItemWriterConfiguration;
 import com.example.tpbatch.writer.BanRoutingWriter;
-import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.launch.support.JobOperatorFactoryBean;
@@ -42,7 +41,6 @@ import java.util.List;
 
 
 @Configuration
-@EnableBatchProcessing
 public class BanToDatabaseJobConfiguration {
 
 
@@ -52,7 +50,7 @@ public class BanToDatabaseJobConfiguration {
     @Value("${numberOfThread}")
     private Integer numberOfThread;
 
-    @Bean
+    @Bean("myJobOperator")
     public JobOperatorFactoryBean jobOperator(JobRepository jobRepository) {
         JobOperatorFactoryBean jobOperatorFactoryBean = new JobOperatorFactoryBean();
         jobOperatorFactoryBean.setJobRepository(jobRepository);
@@ -62,6 +60,7 @@ public class BanToDatabaseJobConfiguration {
     @Bean
     public Job job(JobRepository repo,
                    @Qualifier("downloadStep") Step downloadCsvStep,
+                   @Qualifier("verifyChecksumStep")  Step verifyChecksumStep,
                    @Qualifier("sortStep") Step sortStep,
                    @Qualifier("initStep") Step initTableStep,
                    Step loadCsvStepPartitioner,
@@ -96,12 +95,15 @@ public class BanToDatabaseJobConfiguration {
 
                 .from(downloadCsvStep)
                     .on("*")
-                        .to(sortStep)
-                        .next(initTableStep)
-                        .next(loadCsvStepPartitioner)
-                        .next(addedStep)
-                        .next(deletedStep)
-                        .next(updateStep);
+                        .to(verifyChecksumStep).on("SAME_FILE").end()
+                        .from(verifyChecksumStep)
+                        .on("*")
+                            .to(sortStep)
+                            .next(initTableStep)
+                            .next(loadCsvStepPartitioner)
+                            .next(addedStep)
+                            .next(deletedStep)
+                            .next(updateStep);
 
         if (populateStep != null) {
             flow.next(populateStep);
@@ -168,6 +170,15 @@ public class BanToDatabaseJobConfiguration {
     @Bean
     public Step downloadCsvStep(RetrieveFileTasklet tasklet, JobRepository repo, PlatformTransactionManager transactionManager) {
         return new StepBuilder("Download Step", repo)
+                .tasklet(tasklet)
+                .transactionManager(transactionManager)
+                .build();
+    }
+
+    @Qualifier("verifyChecksumStep")
+    @Bean
+    public Step verifyChecksumStep(VerifyChecksum tasklet, JobRepository repo, PlatformTransactionManager transactionManager) {
+        return new StepBuilder("Verify Checksum Step", repo)
                 .tasklet(tasklet)
                 .transactionManager(transactionManager)
                 .build();
