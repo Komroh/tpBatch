@@ -8,9 +8,12 @@ import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.infrastructure.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.stereotype.Component;
 
+import javax.sql.DataSource;
 import java.util.Arrays;
 
 @Component
@@ -18,6 +21,7 @@ import java.util.Arrays;
 public class InitTableTasklet implements Tasklet {
 
     private final JdbcTemplate jdbcTemplate;
+    private final DataSource dataSource;
 
     @Autowired
     private Environment environment;
@@ -25,9 +29,11 @@ public class InitTableTasklet implements Tasklet {
     @Override
     public @Nullable RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
 
+        ResourceDatabasePopulator populator = new ResourceDatabasePopulator();
         String sql="";
         String[] profiles = this.environment.getActiveProfiles();
         if (Arrays.asList(profiles).contains("postgresql")) {
+            populator.addScript(new ClassPathResource("schema-postgresql.sql"));
              sql = """
                         ALTER TABLE t_ban RENAME TO t_ban_prec;
                     
@@ -59,7 +65,7 @@ public class InitTableTasklet implements Tasklet {
                                 search_vector TSVECTOR  GENERATED ALWAYS AS (
                                    to_tsvector(
                                        'simple',
-                                       coalesce(numero, '0') || ' ' 
+                                       coalesce(numero, '0') || ' '
                                        || coalesce(nom_voie, '') || ' '
                                        || coalesce(code_postal,'') || ' '
                                        || coalesce(nom_commune,'')
@@ -68,6 +74,7 @@ public class InitTableTasklet implements Tasklet {
                             );
                     """;
         }else {
+            populator.addScript(new ClassPathResource("schema-sqlite.sql"));
             sql = """
             ALTER TABLE t_ban RENAME TO t_ban_prec;
 
@@ -99,6 +106,10 @@ public class InitTableTasklet implements Tasklet {
                     );
             """;
         }
+
+        populator.setContinueOnError(false);
+
+        populator.execute(dataSource);
 
         int inserted = jdbcTemplate.update(sql);
         contribution.incrementWriteCount(inserted);

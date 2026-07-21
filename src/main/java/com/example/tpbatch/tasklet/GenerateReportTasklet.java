@@ -32,7 +32,7 @@ public class GenerateReportTasklet implements Tasklet {
             DateTimeFormatter timestampFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
             String timestamp = LocalDateTime.parse(time).format(timestampFormatter);
 
-            String retrieveStatus = contribution.getStepExecution().getJobExecution().getExecutionContext().getString("retrieveStatus");
+            String retrieveStatus = contribution.getStepExecution().getJobExecution().getExecutionContext().getString("retrieveStatus","");
             String checksum = "";
             if (contribution.getStepExecution().getJobExecution().getExecutionContext().containsKey("checksum")) {
                 checksum = contribution.getStepExecution().getJobExecution().getExecutionContext().getString("checksum");

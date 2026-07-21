@@ -2,7 +2,6 @@ package com.example.tpbatch.tasklet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.StepContribution;
@@ -12,7 +11,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
-import java.math.BigInteger;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
@@ -21,7 +19,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.time.LocalDateTime;
+import java.util.HexFormat;
 import java.util.zip.GZIPInputStream;
 
 import static com.example.tpbatch.utils.Constants.*;
@@ -41,8 +39,6 @@ public class RetrieveFileTasklet implements Tasklet {
         int count = 0;
         File[] listFiles = new File(DOWNLOAD_PATH).listFiles();
 
-        String time = LocalDateTime.now().toString();
-        contribution.getStepExecution().getJobExecution().getExecutionContext().put("time", time);
         assert listFiles != null;
         for (File file : listFiles)
         {
@@ -56,11 +52,7 @@ public class RetrieveFileTasklet implements Tasklet {
         {
             log.error("Plusieurs fichiers csv trouvés");
             contribution.setExitStatus(new ExitStatus("MULTIPLE_FILES_FOUND"));
-            contribution.getStepExecution()
-                    .getJobExecution()
-                    .getExecutionContext()
-                    .putString("retrieveStatus", "MULTIPLE_FILES_FOUND");
-            contribution.getStepExecution().getJobExecution().setStatus(BatchStatus.FAILED);
+            contribution.getStepExecution().getJobExecution().getExecutionContext().put("retrieveStatus", "MULTIPLE_FILES_FOUND");
             return RepeatStatus.FINISHED;
         }
 
@@ -75,7 +67,7 @@ public class RetrieveFileTasklet implements Tasklet {
                     "Mozilla/5.0"
             );
             connection.setConnectTimeout(5000);
-            connection.setReadTimeout(60000);
+            connection.setReadTimeout(10000);
 
             try (InputStream in = connection.getInputStream()) {
                 Files.copy(in,
@@ -83,12 +75,8 @@ public class RetrieveFileTasklet implements Tasklet {
                         StandardCopyOption.REPLACE_EXISTING);
             }catch(Exception e) {
                 log.error("Erreur lors du téléchargement de fichier");
-                contribution.getStepExecution()
-                        .getJobExecution()
-                        .getExecutionContext()
-                        .putString("retrieveStatus", "NO_INPUT_FILE");
                 contribution.setExitStatus(new ExitStatus("NO_INPUT_FILE"));
-                contribution.getStepExecution().getJobExecution().setStatus(BatchStatus.COMPLETED);
+                contribution.getStepExecution().getJobExecution().getExecutionContext().put("retrieveStatus", "NO_INPUT_FILE");
                 return RepeatStatus.FINISHED;
             }
 
@@ -108,17 +96,9 @@ public class RetrieveFileTasklet implements Tasklet {
         else  {
             log.error("Format du fichier non valide");
             contribution.setExitStatus(new ExitStatus("WRONG_FILE_FORMAT"));
-            contribution.getStepExecution()
-                    .getJobExecution()
-                    .getExecutionContext()
-                    .putString("retrieveStatus", "WRONG_FILE_FORMAT");
-            contribution.getStepExecution().getJobExecution().setExitStatus(new ExitStatus("WRONG_FILE_FORMAT"));
-            contribution.getStepExecution().getJobExecution().setStatus(BatchStatus.FAILED);
+            contribution.getStepExecution().getJobExecution().getExecutionContext().put("retrieveStatus", "WRONG_FILE_FORMAT");
         }
-        contribution.getStepExecution()
-                .getJobExecution()
-                .getExecutionContext()
-                .putString("retrieveStatus", "COMPLETED");
+        contribution.getStepExecution().getJobExecution().getExecutionContext().put("retrieveStatus", "COMPLETED");
         Files.deleteIfExists(zipPath);
         return RepeatStatus.FINISHED;
     }
@@ -162,9 +142,21 @@ public class RetrieveFileTasklet implements Tasklet {
 
     private static String computeChecksum() throws IOException, NoSuchAlgorithmException {
 
-        byte[] data = Files.readAllBytes(Path.of(FILE_PATH));
-        byte[] hash = MessageDigest.getInstance("MD5").digest(data);
-        return new BigInteger(1, hash).toString(16);
+        Path path = Path.of(FILE_PATH);
+
+        MessageDigest md = MessageDigest.getInstance("MD5");
+
+        try (InputStream is = Files.newInputStream(path)) {
+
+            byte[] buffer = new byte[8192];
+            int bytesRead;
+
+            while ((bytesRead = is.read(buffer)) != -1) {
+                md.update(buffer, 0, bytesRead);
+            }
+        }
+
+        return HexFormat.of().formatHex(md.digest());
 
     }
 }

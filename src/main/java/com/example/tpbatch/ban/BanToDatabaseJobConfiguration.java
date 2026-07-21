@@ -5,6 +5,7 @@ import com.example.tpbatch.Entity.Ban;
 
 import com.example.tpbatch.classifier.BanClassifier;
 import com.example.tpbatch.listener.BanItemProcessListener;
+import com.example.tpbatch.listener.DownloadJobListener;
 import com.example.tpbatch.listener.JobProgressListener;
 
 import com.example.tpbatch.partitioner.CsvStepPartitionner;
@@ -57,10 +58,8 @@ public class BanToDatabaseJobConfiguration {
         return jobOperatorFactoryBean;
     }
 
-    @Bean
+    @Bean("ProcJob")
     public Job job(JobRepository repo,
-                   @Qualifier("downloadStep") Step downloadCsvStep,
-                   @Qualifier("verifyChecksumStep")  Step verifyChecksumStep,
                    @Qualifier("sortStep") Step sortStep,
                    @Qualifier("initStep") Step initTableStep,
                    Step loadCsvStepPartitioner,
@@ -71,39 +70,18 @@ public class BanToDatabaseJobConfiguration {
                    @Qualifier("addConstraintsStep") @Autowired(required = false) Step addConstraintsStep,
                    @Qualifier("archiveStep") Step archiveStep,
                    @Qualifier("reportStep") Step reportStep,
-                   @Qualifier("errorReportStep") Step errorReportStep,
                    JobProgressListener listener)
     {
-        JobBuilder builder = new JobBuilder("Job", repo);
+        JobBuilder builder = new JobBuilder("Batch proc job", repo);
 
                 var flow = builder
                 .listener(listener)
-                .start(downloadCsvStep)
-                    .on("MULTIPLE_FILES_FOUND")
-                        .to(errorReportStep)
-                        .on("*").fail()
-
-                    .from(downloadCsvStep)
-                        .on("WRONG_FILE_FORMAT")
-                            .to(errorReportStep)
-                            .on("*").fail()
-
-                    .from(downloadCsvStep)
-                        .on("NO_INPUT_FILE")
-                            .to(reportStep)
-                            .on("*").end()
-
-                .from(downloadCsvStep)
-                    .on("*")
-                        .to(verifyChecksumStep).on("SAME_FILE").end()
-                        .from(verifyChecksumStep)
-                        .on("*")
-                            .to(sortStep)
-                            .next(initTableStep)
-                            .next(loadCsvStepPartitioner)
-                            .next(addedStep)
-                            .next(deletedStep)
-                            .next(updateStep);
+                .start(sortStep)
+                .next(initTableStep)
+                .next(loadCsvStepPartitioner)
+                .next(addedStep)
+                .next(deletedStep)
+                .next(updateStep);
 
         if (populateStep != null) {
             flow.next(populateStep);
@@ -115,8 +93,34 @@ public class BanToDatabaseJobConfiguration {
 
         return flow.next(archiveStep)
                 .next(reportStep)
-                .build()
                 .build();
+    }
+    @Bean("DownloadJob")
+    public Job downloadJob(JobRepository jobRepository,
+                           @Qualifier("downloadStep") Step downloadCsvStep,
+                           @Qualifier("errorReportStep") Step errorReportStep,
+                           @Qualifier("reportStep") Step reportStep,
+                           @Qualifier("downloadJobListener") DownloadJobListener downloadJobListener,
+                           @Qualifier("JobProgressListener")  JobProgressListener jobProgressListener)
+    {
+        return new JobBuilder("Download Job", jobRepository)
+                .listener(downloadJobListener)
+                .listener(jobProgressListener)
+                .start(downloadCsvStep)
+                    .on("MULTIPLE_FILES_FOUND")
+                    .to(errorReportStep)
+                        .on("*").fail()
+
+                .from(downloadCsvStep)
+                .on("WRONG_FILE_FORMAT")
+                    .to(errorReportStep)
+                        .on("*").fail()
+
+                .from(downloadCsvStep)
+                    .on("NO_INPUT_FILE")
+                    .to(reportStep).on("*").end()
+                .from(downloadCsvStep)
+                    .on("COMPLETED").end().build().build();
     }
 
     @Bean
@@ -170,15 +174,6 @@ public class BanToDatabaseJobConfiguration {
     @Bean
     public Step downloadCsvStep(RetrieveFileTasklet tasklet, JobRepository repo, PlatformTransactionManager transactionManager) {
         return new StepBuilder("Download Step", repo)
-                .tasklet(tasklet)
-                .transactionManager(transactionManager)
-                .build();
-    }
-
-    @Qualifier("verifyChecksumStep")
-    @Bean
-    public Step verifyChecksumStep(VerifyChecksum tasklet, JobRepository repo, PlatformTransactionManager transactionManager) {
-        return new StepBuilder("Verify Checksum Step", repo)
                 .tasklet(tasklet)
                 .transactionManager(transactionManager)
                 .build();
