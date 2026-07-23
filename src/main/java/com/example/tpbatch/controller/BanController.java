@@ -62,6 +62,15 @@ public class BanController {
         return service.rechercheFullText(chaine, pageable).getContent();
     }
 
+    @GetMapping("/recherche/inverse")
+    public Ban rechercheInverse(
+            @RequestParam Double lat,
+            @RequestParam Double lon
+    )
+    {
+        return service.rechercheInverse(lat,lon);
+    }
+
     @PostMapping("/batch/lancer")
     public ResponseEntity<?> lancer(@RequestParam (required = false) String typeCriteria, @RequestParam (required = false)  String criteria)
     {

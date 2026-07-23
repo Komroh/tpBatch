@@ -12,6 +12,8 @@ import org.springframework.stereotype.Component;
 import java.io.*;
 import java.util.*;
 
+import static com.example.tpbatch.utils.Constants.FILE_PATH;
+
 @Component
 public class SortTasklet implements Tasklet {
 
@@ -23,7 +25,10 @@ public class SortTasklet implements Tasklet {
     @Override
     public @Nullable RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
 
-        File input = new File(file);
+        File input = new File(FILE_PATH);
+        if (!input.exists()) {
+            input = new File(file);
+        }
         File output = new File(temp);
 
         List<File> files = ExternalSort.sortInBatch(input,

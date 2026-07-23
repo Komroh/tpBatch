@@ -64,4 +64,37 @@ public class BanSpecification {
             return criteriaBuilder.like(criteriaBuilder.upper(addrExp), chaine.toUpperCase() + "%");
         }));
     }
+
+    public static Specification<Ban> orderByDistance(Double lat, Double lon)
+    {
+        return (root, query, cb) -> {
+            Expression<Double> distance = cb.function("sqrt", Double.class,
+                    cb.sum(
+                            cb.prod(cb.diff(root.get("lat"), lat), cb.diff(root.get("lat"), lat)),
+                            cb.prod(cb.diff(root.get("lon"), lon), cb.diff(root.get("lon"), lon))
+                    )
+            );
+            query.orderBy(cb.asc(distance));
+            return cb.conjunction();
+        };
+    }
+
+    public static Specification<Ban> withinRange(Double lat, Double lon)
+    {
+        double halfSide = 50.0; // mètres
+
+        double deltaLat = halfSide / 111320.0;
+        double deltaLon = halfSide / (111320.0 * Math.cos(Math.toRadians(lat)));
+
+        double latMin = lat - deltaLat;
+        double latMax = lat + deltaLat;
+        double lonMin = lon - deltaLon;
+        double lonMax = lon + deltaLon;
+
+        return (root, query, cb) -> cb.and(
+                cb.between(root.get("lat"), latMin, latMax),
+                cb.between(root.get("lon"), lonMin, lonMax)
+        );
+
+    }
 }

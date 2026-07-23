@@ -15,4 +15,7 @@ public interface BanRepository extends JpaRepository<Ban, String>, JpaSpecificat
     Page<Ban> findAll(Specification<Ban> spec, Pageable page);
 
     Page<Ban> search(@Param("query") String query, Pageable page);
+
+    Ban findClosest(double lat, double lon, double radius);
+
 }

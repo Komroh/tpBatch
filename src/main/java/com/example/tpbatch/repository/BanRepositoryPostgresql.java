@@ -26,4 +26,19 @@ public interface BanRepositoryPostgresql extends BanRepository , JpaRepository<B
         """,
             nativeQuery = true)
     Page<Ban> search(@Param("query") String query, Pageable page);
+
+
+
+    @Query(value = """
+    SELECT *
+    FROM t_ban
+    WHERE ST_DWithin(
+        geom::geography,
+        ST_SetSRID(ST_MakePoint(:lon,:lat),4326)::geography,
+        :radius
+    )
+    ORDER BY geom <-> ST_SetSRID(ST_MakePoint(:lon,:lat),4326)
+    LIMIT 1
+    """, nativeQuery = true)
+    Ban findClosest(double lat, double lon, double radius);
 }

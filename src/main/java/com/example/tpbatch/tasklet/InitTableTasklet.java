@@ -72,6 +72,16 @@ public class InitTableTasklet implements Tasklet {
                                    )
                                ) STORED
                             );
+                    
+                            ALTER TABLE t_ban
+                             ADD COLUMN geom geometry(Point,4326)
+                             GENERATED ALWAYS AS (
+                                 ST_SetSRID(ST_MakePoint(lon, lat),4326)
+                             ) STORED;
+                    
+                             CREATE INDEX IF NOT EXISTS idx_t_ban_geom
+                                  ON t_ban
+                                      USING GIST (geom);
                     """;
         }else {
             populator.addScript(new ClassPathResource("schema-sqlite.sql"));
@@ -111,8 +121,7 @@ public class InitTableTasklet implements Tasklet {
 
         populator.execute(dataSource);
 
-        int inserted = jdbcTemplate.update(sql);
-        contribution.incrementWriteCount(inserted);
+       jdbcTemplate.execute(sql);
 
         return RepeatStatus.FINISHED;
     }

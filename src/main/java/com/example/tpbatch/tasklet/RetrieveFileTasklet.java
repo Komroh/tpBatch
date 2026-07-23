@@ -17,11 +17,9 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.HexFormat;
 import java.util.zip.GZIPInputStream;
 
+import static com.example.tpbatch.utils.ComputeChecksum.computeChecksum;
 import static com.example.tpbatch.utils.Constants.*;
 
 @Component
@@ -67,7 +65,7 @@ public class RetrieveFileTasklet implements Tasklet {
                     "Mozilla/5.0"
             );
             connection.setConnectTimeout(5000);
-            connection.setReadTimeout(10000);
+            connection.setReadTimeout(60000);
 
             try (InputStream in = connection.getInputStream()) {
                 Files.copy(in,
@@ -91,7 +89,7 @@ public class RetrieveFileTasklet implements Tasklet {
             contribution.getStepExecution()
                     .getJobExecution()
                     .getExecutionContext()
-                    .putString("checksum", computeChecksum());
+                    .putString("checksum", computeChecksum(FILE_PATH));
         }
         else  {
             log.error("Format du fichier non valide");
@@ -140,23 +138,4 @@ public class RetrieveFileTasklet implements Tasklet {
 
     }
 
-    private static String computeChecksum() throws IOException, NoSuchAlgorithmException {
-
-        Path path = Path.of(FILE_PATH);
-
-        MessageDigest md = MessageDigest.getInstance("MD5");
-
-        try (InputStream is = Files.newInputStream(path)) {
-
-            byte[] buffer = new byte[8192];
-            int bytesRead;
-
-            while ((bytesRead = is.read(buffer)) != -1) {
-                md.update(buffer, 0, bytesRead);
-            }
-        }
-
-        return HexFormat.of().formatHex(md.digest());
-
-    }
 }

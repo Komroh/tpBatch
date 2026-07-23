@@ -12,7 +12,7 @@ import java.util.Map;
 
 @Component
 public class CsvStepPartitionner implements Partitioner {
-    @Value("${file}")
+    @Value("${tempFile}")
     private String filename;
 
     @Value("${outputDir}")

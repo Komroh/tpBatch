@@ -4,10 +4,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.nio.charset.MalformedInputException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-
-import static com.example.tpbatch.utils.Constants.FILE_PATH;
 
 public class SplitFile {
 
@@ -17,13 +17,12 @@ public class SplitFile {
                                  String  outputDir,
                                  Integer numberOfPart) throws IOException {
         Path outputPath = Path.of(outputDir);
-        File downloadedFile = new File(FILE_PATH);
+        File downloadedFile = new File(fileName);
 
-        if(downloadedFile.exists()){
-            fileName = downloadedFile.getPath();
-        }
         log.info("Splitting file {} to {}", fileName, numberOfPart);
-        try (BufferedReader reader = Files.newBufferedReader(Path.of(fileName))) {
+        long lineNb = 0;
+        try (BufferedReader reader = Files.newBufferedReader(Path.of(fileName),
+                StandardCharsets.UTF_8)) {
 
             String header = reader.readLine();
 
@@ -39,7 +38,7 @@ public class SplitFile {
             String line;
 
             while ((line = reader.readLine()) != null) {
-
+                lineNb++;
                 String[] columns = line.split(";", -1);
 
                 String id = columns[0]; // première colonne = id
@@ -53,6 +52,9 @@ public class SplitFile {
             for (BufferedWriter writer : writers) {
                 writer.close();
             }
+        }catch(MalformedInputException e){
+            log.error("Erreur de lecture du fichier : {}", e.getMessage());
+            throw new IOException("Erreur de lecture du fichier : " + lineNb +e.getMessage(), e);
         }
     }
 }

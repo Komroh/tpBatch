@@ -26,4 +26,6 @@ public interface BanRepositorySqlite extends BanRepository, JpaRepository<Ban, S
         """,
             nativeQuery = true)
     Page<Ban> search(@Param("query") String query, Pageable page);
+
+    Ban findClosest(double lat, double lon, double radius);
 }
