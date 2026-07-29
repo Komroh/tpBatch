@@ -1,6 +1,6 @@
 package com.example.tpbatch.classifier;
 
-import com.example.tpbatch.Dto.BanDto;
+import com.example.tpbatch.dto.BanDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.infrastructure.item.ItemWriter;

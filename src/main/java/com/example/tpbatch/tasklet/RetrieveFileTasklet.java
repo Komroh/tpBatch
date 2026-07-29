@@ -119,30 +119,30 @@ public class RetrieveFileTasklet implements Tasklet {
 
     private void decompress()
     {
+
         byte[] buffer = new byte[1024];
         try
         {
-            GZIPInputStream is =
-                    new GZIPInputStream(new FileInputStream(ZIPPED_PATH));
+             try (GZIPInputStream is = new GZIPInputStream(new FileInputStream(ZIPPED_PATH))){
 
-            FileOutputStream out =
-                    new FileOutputStream(filePath);
 
-            int totalSize;
-            while((totalSize = is.read(buffer)) > 0 )
-            {
-                out.write(buffer, 0, totalSize);
+
+            try (FileOutputStream out = new FileOutputStream(filePath)) {
+
+                int totalSize;
+                while ((totalSize = is.read(buffer)) > 0) {
+                    out.write(buffer, 0, totalSize);
+                }
+
+                log.info("Fichier décompressé avec succès");
             }
-
-            out.close();
-            is.close();
-
-            log.info("Fichier décompressé avec succès");
+             }
         }
         catch (IOException e)
         {
             log.error("Erreur lors de la décompression du fichier");
         }
+
 
     }
 

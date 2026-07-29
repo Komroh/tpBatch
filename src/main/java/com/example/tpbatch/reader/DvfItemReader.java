@@ -1,6 +1,6 @@
 package com.example.tpbatch.reader;
 
-import com.example.tpbatch.Entity.Dvf;
+import com.example.tpbatch.entity.Dvf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -18,13 +18,15 @@ public class DvfItemReader {
 
     private final Logger log = LoggerFactory.getLogger(DvfItemReader.class);
 
-    @Bean("DvfReader")
+    @Bean("dvfReader")
     @StepScope
     public FlatFileItemReader<Dvf> dvfReader(
             @Value("#{stepExecutionContext[file]}") String file
     )
     {
         log.info("DVF reader créé");
+        BeanWrapperFieldSetMapper<Dvf> fieldSetMapper = new BeanWrapperFieldSetMapper<>();
+        fieldSetMapper.setTargetType(Dvf.class);
         return new FlatFileItemReaderBuilder<Dvf>()
                 .name("DvfCsvReader")
                 .resource(new FileSystemResource(file))
@@ -53,9 +55,7 @@ public class DvfItemReader {
                         "longitude","latitude"
 
                 )
-                .fieldSetMapper(new BeanWrapperFieldSetMapper<>() {{
-                    setTargetType(Dvf.class);
-                }})
+                .fieldSetMapper(fieldSetMapper)
                 .build();
     }
 }

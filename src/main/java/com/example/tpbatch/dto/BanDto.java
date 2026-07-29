@@ -1,6 +1,6 @@
-package com.example.tpbatch.Dto;
+package com.example.tpbatch.dto;
 
-import com.example.tpbatch.Entity.Ban;
+import com.example.tpbatch.entity.Ban;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,7 +10,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class BanDto {
-    @Pattern(regexp = "[0-9]{5}_[A-Za-z0-9]+_.*", message = "Mauvais format d'id")
+    @Pattern(regexp = "\\d{5}_[A-Za-z0-9]+_.*", message = "Mauvais format d'id")
     private String id;
     private String id_fantoir;
     private Integer numero;

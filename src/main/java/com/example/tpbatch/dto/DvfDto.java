@@ -1,6 +1,6 @@
-package com.example.tpbatch.Dto;
+package com.example.tpbatch.dto;
 
-import com.example.tpbatch.Entity.Dvf;
+import com.example.tpbatch.entity.Dvf;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;

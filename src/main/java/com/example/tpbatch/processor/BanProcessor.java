@@ -1,6 +1,6 @@
 package com.example.tpbatch.processor;
 
-import com.example.tpbatch.Dto.BanDto;
+import com.example.tpbatch.dto.BanDto;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.batch.core.configuration.annotation.StepScope;

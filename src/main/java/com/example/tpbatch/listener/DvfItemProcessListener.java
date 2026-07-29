@@ -1,7 +1,7 @@
 package com.example.tpbatch.listener;
 
-import com.example.tpbatch.Dto.DvfDto;
-import com.example.tpbatch.Entity.Dvf;
+import com.example.tpbatch.dto.DvfDto;
+import com.example.tpbatch.entity.Dvf;
 import com.example.tpbatch.metrics.BanMetrics;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;

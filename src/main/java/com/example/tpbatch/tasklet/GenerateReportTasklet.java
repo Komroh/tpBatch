@@ -4,6 +4,8 @@ import com.example.tpbatch.metrics.BanMetrics;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.StepContribution;
 import org.springframework.batch.core.step.tasklet.Tasklet;
@@ -21,6 +23,7 @@ import static com.example.tpbatch.utils.Constants.REPORT_PATH;
 public class GenerateReportTasklet implements Tasklet {
     private final BanMetrics banMetrics;
     private final MeterRegistry meterRegistry;
+    private final Logger log =  LoggerFactory.getLogger(GenerateReportTasklet.class);
 
     @Override
     public @Nullable RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
@@ -38,25 +41,29 @@ public class GenerateReportTasklet implements Tasklet {
                 checksum = contribution.getStepExecution().getJobExecution().getExecutionContext().getString("checksum");
             }
 
-            BufferedWriter writer = new BufferedWriter(new java.io.FileWriter(REPORT_PATH + "/report_" + jobName + "_" + timestamp + ".txt"));
-            if (retrieveStatus.equals("NO_INPUT_FILE")) {
-                writer.write("Aucun fichier à traiter");
-            } else {
-                var status = contribution.getStepExecution().getJobExecution().getStatus();
-                writer.write("Status: " + status + " ExitStatus: " + retrieveStatus);
-                writer.newLine();
-                writer.write("Checksum: " + checksum);
-                writer.newLine();
-                writer.write("Nombre d'éléments traités : " + banMetrics.getItemProcessed());
-                writer.newLine();
-                writer.write("Nombre de doublons purs : " + banMetrics.getDuplicateSame());
-                writer.newLine();
-                writer.write("Nombre de doublons avec champs différents : " + banMetrics.getDuplicateDiff());
+            try (BufferedWriter writer = new BufferedWriter(new java.io.FileWriter(REPORT_PATH + "/report_" + jobName + "_" + timestamp + ".txt"))) {
+            if(retrieveStatus.equals("NO_INPUT_FILE"))
+
+                {
+                    writer.write("Aucun fichier à traiter");
+                } else
+
+                {
+                    var status = contribution.getStepExecution().getJobExecution().getStatus();
+                    writer.write("Status: " + status + " ExitStatus: " + retrieveStatus);
+                    writer.newLine();
+                    writer.write("Checksum: " + checksum);
+                    writer.newLine();
+                    writer.write("Nombre d'éléments traités : " + banMetrics.getItemProcessed());
+                    writer.newLine();
+                    writer.write("Nombre de doublons purs : " + banMetrics.getDuplicateSame());
+                    writer.newLine();
+                    writer.write("Nombre de doublons avec champs différents : " + banMetrics.getDuplicateDiff());
+                }
             }
-            writer.close();
 
         }catch (Exception e){
-            e.printStackTrace();
+            log.error("Erreur lors de la génération du rapport: {}", e.getMessage());
         }
         return RepeatStatus.FINISHED;
     }

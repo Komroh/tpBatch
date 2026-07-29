@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Qualifier("JobProgressListener")
 @Component
@@ -16,20 +17,35 @@ public class JobProgressListener implements JobExecutionListener {
 
     private static final Logger log =
             LoggerFactory.getLogger(JobProgressListener.class);
+    private static final String ZONE = "Europe/Paris";
     public void beforeJob(JobExecution jobExecution) {
-        jobExecution.getExecutionContext().put("time", LocalDateTime.now().toString());
+
+        jobExecution.getExecutionContext().put("time", LocalDateTime.now(ZoneId.of(ZONE)).toString());
         log.info("Démarrage du job [{}] avec les paramètres : {}",
                 jobExecution.getJobInstance().getJobName(),
                 jobExecution.getJobParameters());
     }
     @Override
     public void afterJob(JobExecution jobExecution) {
-        log.info("Job [{}] terminé avec le statut : {} en {} ms",
-                jobExecution.getJobInstance().getJobName(),
-                jobExecution.getStatus(),
-                Duration.between(
-                        jobExecution.getStartTime(),
-                        jobExecution.getEndTime()).toMillis());
+        LocalDateTime jobBegin = jobExecution.getStartTime();
+        LocalDateTime jobEnd = jobExecution.getEndTime();
+
+        if(jobEnd != null && jobBegin != null){
+            log.info("Job [{}] terminé avec le statut : {} en {} ms",
+                    jobExecution.getJobInstance().getJobName(),
+                    jobExecution.getStatus(),
+                    Duration.between(
+                            jobBegin.atZone(ZoneId.of(ZONE)).toInstant(),
+                            jobEnd.atZone(ZoneId.of(ZONE)).toInstant()
+                    ).toMillis());
+        }
+        else{
+            log.info("Job [{}] terminé avec le statut : {}",
+                    jobExecution.getJobInstance().getJobName(),
+                    jobExecution.getStatus()
+            );
+        }
+
     }
 }
 

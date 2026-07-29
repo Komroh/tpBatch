@@ -1,6 +1,6 @@
 package com.example.tpbatch.repository;
 
-import com.example.tpbatch.Entity.Dvf;
+import com.example.tpbatch.entity.Dvf;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;

@@ -1,6 +1,6 @@
 package com.example.tpbatch.writer;
 
-import com.example.tpbatch.Dto.DvfDto;
+import com.example.tpbatch.dto.DvfDto;
 import org.springframework.batch.infrastructure.item.Chunk;
 import org.springframework.batch.infrastructure.item.ItemWriter;
 

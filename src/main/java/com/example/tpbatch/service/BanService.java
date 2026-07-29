@@ -1,7 +1,7 @@
 package com.example.tpbatch.service;
 
-import com.example.tpbatch.Dto.BanSearchRequest;
-import com.example.tpbatch.Entity.Ban;
+import com.example.tpbatch.dto.BanSearchRequest;
+import com.example.tpbatch.entity.Ban;
 import com.example.tpbatch.repository.BanRepository;
 import com.example.tpbatch.specification.BanSpecification;
 import com.example.tpbatch.utils.ComputeChecksum;
@@ -41,13 +41,13 @@ public class BanService {
     private final BanRepository repo;
     private final Logger log = LoggerFactory.getLogger(BanService.class);
 
-    @Qualifier("DownloadJob")
+    @Qualifier("downloadJob")
     private final Job downloadJob;
 
-    @Qualifier("ProcJob")
+    @Qualifier("procJob")
     private final Job procJob;
 
-    @Qualifier("DvfJob")
+    @Qualifier("dvfJob")
     private final Job dvfJob;
 
     @Value("${downloadFile}")
@@ -64,7 +64,7 @@ public class BanService {
 
     private final JobOperator jobOperator;
 
-    public BanService(BanRepository repo,@Qualifier("DownloadJob") Job downloadJob, @Qualifier("ProcJob") Job procJob, @Qualifier("DvfJob") Job dvfJob, JobOperator jobOperator) {
+    public BanService(BanRepository repo,@Qualifier("downloadJob") Job downloadJob, @Qualifier("procJob") Job procJob, @Qualifier("dvfJob") Job dvfJob, JobOperator jobOperator) {
         this.repo = repo;
         this.downloadJob = downloadJob;
         this.procJob = procJob;
@@ -122,6 +122,7 @@ public class BanService {
                     try {
 
                         JobParameters procJobParameters = new JobParametersBuilder()
+                                .addLong("timestamp", System.currentTimeMillis())
                                 .addString("typeCriteria", typeCriteria)
                                 .addString("criteria", criteria)
                                 .addString("checksum", jobExec.getExecutionContext().getString("checksum", ""))
@@ -149,6 +150,7 @@ public class BanService {
                             jobExec = jobOperator.start(downloadJob, downloadJobParameters);
 
                             JobParameters dvfJobParameters = new JobParametersBuilder()
+                                    .addLong("timestamp", System.currentTimeMillis())
                                     .addString("typeCriteria", typeCriteria)
                                     .addString("criteria", criteria)
                                     .addString("checksum", jobExec.getExecutionContext().getString("checksum", ""))

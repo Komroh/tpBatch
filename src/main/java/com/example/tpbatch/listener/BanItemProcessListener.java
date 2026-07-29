@@ -1,7 +1,7 @@
 package com.example.tpbatch.listener;
 
-import com.example.tpbatch.Dto.BanDto;
-import com.example.tpbatch.Entity.Ban;
+import com.example.tpbatch.dto.BanDto;
+import com.example.tpbatch.entity.Ban;
 import com.example.tpbatch.metrics.BanMetrics;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;

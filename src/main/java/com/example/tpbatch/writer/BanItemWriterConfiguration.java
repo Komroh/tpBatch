@@ -1,7 +1,7 @@
 package com.example.tpbatch.writer;
 
-import com.example.tpbatch.Dto.BanDto;
-import com.example.tpbatch.Dto.DvfDto;
+import com.example.tpbatch.dto.BanDto;
+import com.example.tpbatch.dto.DvfDto;
 import com.example.tpbatch.loader.SqlLoader;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.infrastructure.item.database.JdbcBatchItemWriter;

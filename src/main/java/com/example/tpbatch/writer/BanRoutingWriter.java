@@ -1,6 +1,6 @@
 package com.example.tpbatch.writer;
 
-import com.example.tpbatch.Dto.BanDto;
+import com.example.tpbatch.dto.BanDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.infrastructure.item.Chunk;
 import org.springframework.batch.infrastructure.item.ItemWriter;

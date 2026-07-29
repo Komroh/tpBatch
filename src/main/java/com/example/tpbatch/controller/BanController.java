@@ -1,7 +1,7 @@
 package com.example.tpbatch.controller;
 
-import com.example.tpbatch.Dto.BanSearchRequest;
-import com.example.tpbatch.Entity.Ban;
+import com.example.tpbatch.dto.BanSearchRequest;
+import com.example.tpbatch.entity.Ban;
 import com.example.tpbatch.service.BanService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

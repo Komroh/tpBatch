@@ -8,7 +8,6 @@ import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.StepContribution;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.infrastructure.repeat.RepeatStatus;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
@@ -28,8 +27,7 @@ public class InitTableTasklet implements Tasklet {
     private final DataSource dataSource;
     private final SqlLoader loader;
 
-    @Autowired
-    private Environment environment;
+    private final Environment environment;
 
     @Value("#{jobParameters['initScriptPostgres']}")
     private String initScriptPostgres;

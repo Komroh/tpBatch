@@ -1,6 +1,6 @@
 package com.example.tpbatch.repository;
 
-import com.example.tpbatch.Entity.Ban;
+import com.example.tpbatch.entity.Ban;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;

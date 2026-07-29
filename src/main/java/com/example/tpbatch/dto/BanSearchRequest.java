@@ -1,4 +1,4 @@
-package com.example.tpbatch.Dto;
+package com.example.tpbatch.dto;
 
 public record BanSearchRequest(
         String codePastal,

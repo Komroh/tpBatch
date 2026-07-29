@@ -1,4 +1,4 @@
-package com.example.tpbatch.Entity;
+package com.example.tpbatch.entity;
 
 import com.example.tpbatch.utils.Hashable;
 import jakarta.persistence.Column;

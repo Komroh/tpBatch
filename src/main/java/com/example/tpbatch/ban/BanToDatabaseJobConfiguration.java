@@ -1,10 +1,10 @@
 package com.example.tpbatch.ban;
 
-import com.example.tpbatch.Dto.BanDto;
-import com.example.tpbatch.Dto.DvfDto;
-import com.example.tpbatch.Entity.Ban;
+import com.example.tpbatch.dto.BanDto;
+import com.example.tpbatch.dto.DvfDto;
+import com.example.tpbatch.entity.Ban;
 
-import com.example.tpbatch.Entity.Dvf;
+import com.example.tpbatch.entity.Dvf;
 import com.example.tpbatch.listener.BanItemProcessListener;
 import com.example.tpbatch.listener.DownloadJobListener;
 import com.example.tpbatch.listener.DvfItemProcessListener;
@@ -63,10 +63,10 @@ public class BanToDatabaseJobConfiguration {
         return jobOperatorFactoryBean;
     }
 
-    @Bean("ProcJob")
+    @Bean("procJob")
     public Job job(JobRepository repo,
                    @Qualifier("sortStep") Step sortStep,
-                   @Qualifier("initStep") Step initTableStep,
+                   @Qualifier("initTableStep") Step initTableStep,
                    @Qualifier("loadBanStepPartitioner") Step loadBanStepPartitioner,
                    @Qualifier("addedStep") Step addedStep,
                    @Qualifier("deletedStep") Step deletedStep,
@@ -101,10 +101,10 @@ public class BanToDatabaseJobConfiguration {
                 .build();
     }
 
-    @Bean("DvfJob")
-    public Job DvfJob(JobRepository repo,
+    @Bean("dvfJob")
+    public Job dvfJob(JobRepository repo,
                    @Qualifier("sortStep") Step sortStep,
-                   @Qualifier("initStep") Step initTableStep,
+                   @Qualifier("initTableStep") Step initTableStep,
                    @Qualifier("loadDvfStepPartitioner") Step loadDvfStepPartitioner,
                    @Qualifier("addedStep") Step addedStep,
                    @Qualifier("deletedStep") Step deletedStep,
@@ -138,9 +138,9 @@ public class BanToDatabaseJobConfiguration {
                 .next(reportStep)
                 .build();
     }
-    @Bean("DownloadJob")
+    @Bean("downloadJob")
     public Job downloadJob(JobRepository jobRepository,
-                           @Qualifier("downloadStep") Step downloadCsvStep,
+                           Step downloadCsvStep,
                            @Qualifier("errorReportStep") Step errorReportStep,
                            @Qualifier("reportStep") Step reportStep,
                            @Qualifier("downloadJobListener") DownloadJobListener downloadJobListener,
@@ -167,14 +167,14 @@ public class BanToDatabaseJobConfiguration {
     }
 
     @Bean("loadBanStepPartitioner")
-    public Step loadBanStepPartitioner(JobRepository jobRepository,@Qualifier("BanInsertStep") Step insertBanStep, CsvStepPartitionner partitioner) {
+    public Step loadBanStepPartitioner(JobRepository jobRepository,@Qualifier("banInsertStep") Step insertBanStep, CsvStepPartitionner partitioner) {
         return new  StepBuilder("partitionStep", jobRepository)
                 .partitioner("slaveStep", partitioner)
                 .partitionHandler(banPartitionHandler(insertBanStep))
                 .build();
     }
     @Bean("loadDvfStepPartitioner")
-    public Step loadDvfStepPartitioner(JobRepository jobRepository,@Qualifier("DvfInsertStep") Step insertDvfStep, CsvStepPartitionner partitioner) {
+    public Step loadDvfStepPartitioner(JobRepository jobRepository,@Qualifier("dvfInsertStep") Step insertDvfStep, CsvStepPartitionner partitioner) {
         return new  StepBuilder("dvfPartitionStep", jobRepository)
                 .partitioner("dvfSlaveStep", partitioner)
                 .partitionHandler(dvfPartitionHandler(insertDvfStep))
@@ -183,7 +183,7 @@ public class BanToDatabaseJobConfiguration {
 
     @Bean("banPartitionHandler")
     public PartitionHandler banPartitionHandler(
-            @Qualifier("BanInsertStep") Step workerStep) {
+            @Qualifier("banInsertStep") Step workerStep) {
 
         TaskExecutorPartitionHandler handler = new TaskExecutorPartitionHandler();
         handler.setTaskExecutor(taskExecutor());
@@ -194,7 +194,7 @@ public class BanToDatabaseJobConfiguration {
 
     @Bean("dvfPartitionHandler")
     public PartitionHandler dvfPartitionHandler(
-            @Qualifier("DvfInsertStep") Step workerStep) {
+            @Qualifier("dvfInsertStep") Step workerStep) {
 
         TaskExecutorPartitionHandler handler = new TaskExecutorPartitionHandler();
         handler.setTaskExecutor(taskExecutor());
@@ -213,10 +213,10 @@ public class BanToDatabaseJobConfiguration {
         return executor;
     }
 
-    @Bean("BanInsertStep")
-    public Step insertBanStep(JobRepository repo, @Qualifier("BanReader") FlatFileItemReader<Ban> reader,
-                               @Qualifier("BanCompositeProcessor") CompositeItemProcessor<Ban, BanDto>  compositeProcessor,
-                               @Qualifier("BanRoutingWriter") BanRoutingWriter writer,
+    @Bean("banInsertStep")
+    public Step insertBanStep(JobRepository repo, @Qualifier("banReader") FlatFileItemReader<Ban> reader,
+                               @Qualifier("banCompositeProcessor") CompositeItemProcessor<Ban, BanDto>  compositeProcessor,
+                               @Qualifier("banRoutingWriter") BanRoutingWriter writer,
                                PlatformTransactionManager transactionManager,
                                BanItemProcessListener itemCountListener,
                                DuplicateProcessor addressMapListener)
@@ -231,10 +231,10 @@ public class BanToDatabaseJobConfiguration {
                 .listener(itemCountListener)
                 .build();
     }
-    @Bean("DvfInsertStep")
-    public Step insertDvfStep(JobRepository repo, @Qualifier("DvfReader") FlatFileItemReader<Dvf> reader,
-                           @Qualifier("DvfCompositeProcessor") CompositeItemProcessor<Dvf, DvfDto>  compositeProcessor,
-                           @Qualifier("DvfRoutingWriter") DvfRoutingWriter writer,
+    @Bean("dvfInsertStep")
+    public Step insertDvfStep(JobRepository repo, @Qualifier("dvfReader") FlatFileItemReader<Dvf> reader,
+                           @Qualifier("dvfCompositeProcessor") CompositeItemProcessor<Dvf, DvfDto>  compositeProcessor,
+                           @Qualifier("dvfRoutingWriter") DvfRoutingWriter writer,
                            PlatformTransactionManager transactionManager,
                            DuplicateDvfProcessor dvfMapListener,
                            DvfItemProcessListener listener)
@@ -251,7 +251,6 @@ public class BanToDatabaseJobConfiguration {
     }
 
 
-    @Qualifier("downloadStep")
     @Bean
     public Step downloadCsvStep(RetrieveFileTasklet tasklet, JobRepository repo, PlatformTransactionManager transactionManager) {
         return new StepBuilder("Download Step", repo)
@@ -260,9 +259,7 @@ public class BanToDatabaseJobConfiguration {
                 .build();
     }
 
-    @Qualifier("sortStep")
     @Bean
-
     public Step sortStep(SortTasklet tasklet, JobRepository repo, PlatformTransactionManager transactionManager) {
         return new StepBuilder("Sort Step", repo)
                 .tasklet(tasklet)
@@ -270,7 +267,6 @@ public class BanToDatabaseJobConfiguration {
                 .build();
     }
 
-    @Qualifier("initStep")
     @Bean
     public Step initTableStep(InitTableTasklet tasklet, JobRepository repo, PlatformTransactionManager transactionManager) {
         return new StepBuilder("Init Step", repo)
@@ -279,7 +275,6 @@ public class BanToDatabaseJobConfiguration {
                 .build();
     }
 
-    @Qualifier("addedStep")
     @Bean
     public Step addedStep(AddedTasklet tasklet, JobRepository repo, PlatformTransactionManager transactionManager) {
         return new StepBuilder("Added Step", repo)
@@ -287,16 +282,14 @@ public class BanToDatabaseJobConfiguration {
                 .transactionManager(transactionManager)
                 .build();
     }
-    @Qualifier("deletedStep")
     @Bean
-    public Step deleteStep(DeletedTasklet tasklet, JobRepository repo, PlatformTransactionManager transactionManager) {
+    public Step deletedStep(DeletedTasklet tasklet, JobRepository repo, PlatformTransactionManager transactionManager) {
         return new StepBuilder("Delete Step", repo)
                 .tasklet(tasklet)
                 .transactionManager(transactionManager)
                 .build();
     }
 
-    @Qualifier("updateStep")
     @Bean
     public Step updateStep(IdentifyUpdateTasklet tasklet, JobRepository repo, PlatformTransactionManager transactionManager) {
         return new StepBuilder("Update Step", repo)
@@ -306,7 +299,6 @@ public class BanToDatabaseJobConfiguration {
     }
 
 
-    @Qualifier("populateStep")
     @Bean
     @Profile("sqlite")
     public Step populateStep(PopulateSearchTableTasklet tasklet, JobRepository repo, PlatformTransactionManager transactionManager) {
@@ -316,7 +308,6 @@ public class BanToDatabaseJobConfiguration {
                 .build();
     }
 
-    @Qualifier("addConstraintsStep")
     @Bean
     @Profile("postgresql")
     public Step addConstraintsStep(AddConstraintsTasklet tasklet, JobRepository repo, PlatformTransactionManager transactionManager) {
@@ -325,7 +316,6 @@ public class BanToDatabaseJobConfiguration {
                 .transactionManager(transactionManager)
                 .build();
     }
-    @Qualifier("archiveStep")
     @Bean
     public Step archiveStep(ArchiveTasklet tasklet, JobRepository repo, PlatformTransactionManager transactionManager) {
         return new StepBuilder("archive Step", repo)
@@ -334,7 +324,6 @@ public class BanToDatabaseJobConfiguration {
                 .build();
     }
 
-    @Qualifier("reportStep")
     @Bean
     public Step reportStep(GenerateReportTasklet tasklet, JobRepository repo, PlatformTransactionManager transactionManager) {
         return new StepBuilder("report Step", repo)
@@ -343,7 +332,6 @@ public class BanToDatabaseJobConfiguration {
                 .build();
     }
 
-    @Qualifier("errorReportStep")
     @Bean
     public Step errorReportStep(GenerateReportTasklet tasklet, JobRepository repo, PlatformTransactionManager transactionManager) {
         return new StepBuilder("error report Step", repo)
@@ -360,7 +348,7 @@ public class BanToDatabaseJobConfiguration {
         return processor;
     }
 
-    @Bean("BanCompositeProcessor")
+    @Bean("banCompositeProcessor")
     public CompositeItemProcessor<Ban, BanDto> compositeProcessor(BanProcessor processor,
                                                                   BeanValidatingItemProcessor<BanDto> validator,
                                                                   DuplicateProcessor duplicationProcessor) {
@@ -376,7 +364,7 @@ public class BanToDatabaseJobConfiguration {
         return composite;
     }
 
-    @Bean("DvfCompositeProcessor")
+    @Bean("dvfCompositeProcessor")
     public CompositeItemProcessor<Dvf, DvfDto> compositeDvfProcessor(
                                                                   DuplicateDvfProcessor duplicationProcessor) {
         CompositeItemProcessor<Dvf, DvfDto> composite =
@@ -393,7 +381,6 @@ public class BanToDatabaseJobConfiguration {
         compositeItemWriter.setClassifier(new BanClassifier(writers.banWriter(ds), writers.duplicateBanWriter(ds)));
         return compositeItemWriter;
     }*/
-
 
 
 }

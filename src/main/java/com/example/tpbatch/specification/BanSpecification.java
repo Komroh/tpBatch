@@ -1,7 +1,7 @@
 package com.example.tpbatch.specification;
 
-import com.example.tpbatch.Dto.BanSearchRequest;
-import com.example.tpbatch.Entity.Ban;
+import com.example.tpbatch.dto.BanSearchRequest;
+import com.example.tpbatch.entity.Ban;
 import jakarta.persistence.criteria.Expression;
 import org.springframework.data.jpa.domain.Specification;
 
