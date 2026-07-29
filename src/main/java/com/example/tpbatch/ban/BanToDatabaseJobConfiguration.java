@@ -144,7 +144,7 @@ public class BanToDatabaseJobConfiguration {
                            @Qualifier("errorReportStep") Step errorReportStep,
                            @Qualifier("reportStep") Step reportStep,
                            @Qualifier("downloadJobListener") DownloadJobListener downloadJobListener,
-                           @Qualifier("JobProgressListener")  JobProgressListener jobProgressListener)
+                           JobProgressListener jobProgressListener)
     {
         return new JobBuilder("Download Job", jobRepository)
                 .listener(downloadJobListener)
@@ -374,13 +374,5 @@ public class BanToDatabaseJobConfiguration {
         ));
         return composite;
     }
-
-    /*@Bean
-    public ClassifierCompositeItemWriter<BanDto> classifierBanCompositeItemWriter(DataSource ds, BanItemWriterConfiguration writers) throws Exception {
-        ClassifierCompositeItemWriter<BanDto> compositeItemWriter = new ClassifierCompositeItemWriter<>();
-        compositeItemWriter.setClassifier(new BanClassifier(writers.banWriter(ds), writers.duplicateBanWriter(ds)));
-        return compositeItemWriter;
-    }*/
-
 
 }

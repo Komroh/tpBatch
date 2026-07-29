@@ -25,9 +25,9 @@ public class BanProcessor implements ItemProcessor<BanDto, BanDto> {
         }
         if(!typeCriteria.isEmpty()) {
             return switch (typeCriteria) {
-                case "dept" -> address.getCode_postal().startsWith(criteria) ? address : null;
-                case "postal" -> address.getCode_postal().equals(criteria) ? address : null;
-                case "insee" -> address.getCode_insee().equals(criteria) ? address : null;
+                case "dept" -> address.getCodePostal().startsWith(criteria) ? address : null;
+                case "postal" -> address.getCodePostal().equals(criteria) ? address : null;
+                case "insee" -> address.getCodeInsee().equals(criteria) ? address : null;
                 default -> throw new IllegalArgumentException("Invalid field argument");
             };
         }

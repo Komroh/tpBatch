@@ -12,28 +12,28 @@ import lombok.Setter;
 public class BanDto {
     @Pattern(regexp = "\\d{5}_[A-Za-z0-9]+_.*", message = "Mauvais format d'id")
     private String id;
-    private String id_fantoir;
+    private String idFantoir;
     private Integer numero;
     private String rep;
-    private String nom_voie;
-    private String code_postal;
-    private String code_insee;
-    private String nom_commune;
-    private String code_insee_ancienne_commune;
-    private String nom_ancienne_commune ;
+    private String nomVoie;
+    private String codePostal;
+    private String codeInsee;
+    private String nomCommune;
+    private String codeInseeAncienneCommune;
+    private String nomAncienneCommune ;
     private Double x;
     private Double y;
     private Double lon ;
     private Double lat ;
-    private String type_position;
+    private String typePosition;
     private String alias ;
-    private String nom_ld ;
-    private String libelle_acheminement ;
-    private String nom_afnor;
-    private String source_position;
-    private String source_nom_voie;
-    private Integer certification_commune;
-    private String cad_parcelles;
+    private String nomLd ;
+    private String libelleAcheminement ;
+    private String nomAfnor;
+    private String sourcePosition;
+    private String sourceNomVoie;
+    private Integer certificationCommune;
+    private String cadParcelles;
     private long hash;
     private Boolean isDuplicate;
 
@@ -69,28 +69,28 @@ public class BanDto {
         {
             return new Ban(
                     this.id,
-                    this.id_fantoir,
+                    this.idFantoir,
                     this.numero,
                     this.rep,
-                    this.nom_voie,
-                    this.code_postal,
-                    this.code_insee,
-                    this.nom_commune,
-                    this.code_insee_ancienne_commune,
-                    this.nom_ancienne_commune ,
+                    this.nomVoie,
+                    this.codePostal,
+                    this.codeInsee,
+                    this.nomCommune,
+                    this.codeInseeAncienneCommune,
+                    this.nomAncienneCommune ,
                     this.x,
                     this.y,
                     this.lon ,
                     this.lat ,
-                    this.type_position,
+                    this.typePosition,
                     this.alias ,
-                    this.nom_ld ,
-                    this.libelle_acheminement ,
-                    this.nom_afnor,
-                    this.source_position,
-                    this.source_nom_voie,
-                    this.certification_commune,
-                    this.cad_parcelles,
+                    this.nomLd ,
+                    this.libelleAcheminement ,
+                    this.nomAfnor,
+                    this.sourcePosition,
+                    this.sourceNomVoie,
+                    this.certificationCommune,
+                    this.cadParcelles,
                     this.hash
             );
         }
