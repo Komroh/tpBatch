@@ -2,6 +2,7 @@ package com.example.tpbatch.tasklet;
 
 import com.google.code.externalsorting.ExternalSort;
 import org.jspecify.annotations.Nullable;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.StepContribution;
 import org.springframework.batch.core.step.tasklet.Tasklet;
@@ -12,20 +13,32 @@ import org.springframework.stereotype.Component;
 import java.io.*;
 import java.util.*;
 
-import static com.example.tpbatch.utils.Constants.FILE_PATH;
-
 @Component
+@StepScope
 public class SortTasklet implements Tasklet {
 
-    @Value("${file}")
+   /* @Value("#{jobParameters['file']}")
     private  String file;
+
+    @Value("#{jobParameters['filePath']}")
+    private String filePath;*/
+
     @Value("${tempFile}")
     private  String temp;
 
     @Override
+    @StepScope
     public @Nullable RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
 
-        File input = new File(FILE_PATH);
+        String file = (String) chunkContext.getStepContext()
+                .getJobParameters()
+                .get("file");
+
+        String filePath = (String) chunkContext.getStepContext()
+                .getJobParameters()
+                .get("filePath");
+
+        File input = new File(filePath);
         if (!input.exists()) {
             input = new File(file);
         }

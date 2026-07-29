@@ -1,6 +1,7 @@
 package com.example.tpbatch.tasklet;
 
 import org.jspecify.annotations.Nullable;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.StepContribution;
 import org.springframework.batch.core.step.tasklet.Tasklet;
@@ -15,12 +16,15 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 import static com.example.tpbatch.utils.Constants.ARCHIVE_PATH;
-import static com.example.tpbatch.utils.Constants.FILE_PATH;
 
 @Component
+@StepScope
 public class ArchiveTasklet implements Tasklet {
     @Value("${downloadFile}")
     private Boolean DownloadFile;
+
+    @Value("#{jobParameters['filePath']}")
+    private String filePath;
     @Override
     public @Nullable RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
         if(DownloadFile) {
@@ -28,8 +32,8 @@ public class ArchiveTasklet implements Tasklet {
 
             String time = contribution.getStepExecution().getJobExecution().getExecutionContext().getString("time");
             String timestamp = LocalDateTime.parse(time).format(timestampFormatter);
-            String archiveFileName = timestamp + "_" + "addr.csv";
-            Path fileToMove = Paths.get(FILE_PATH);
+            String archiveFileName = timestamp + "_" + filePath.split("/")[filePath.split("/").length - 1];
+            Path fileToMove = Paths.get(filePath);
             Path targetPath = Paths.get(ARCHIVE_PATH, archiveFileName);
             Files.move(fileToMove, targetPath);
         }

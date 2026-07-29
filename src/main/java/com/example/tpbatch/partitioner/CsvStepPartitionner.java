@@ -1,6 +1,7 @@
 package com.example.tpbatch.partitioner;
 
 import com.example.tpbatch.utils.SplitFile;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.partition.Partitioner;
 import org.springframework.batch.infrastructure.item.ExecutionContext;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,6 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Component
+@StepScope
 public class CsvStepPartitionner implements Partitioner {
     @Value("${tempFile}")
     private String filename;
@@ -18,12 +20,15 @@ public class CsvStepPartitionner implements Partitioner {
     @Value("${outputDir}")
     private String outputDir;
 
+    @Value("#{jobParameters['delimiter']}")
+    private String delimiter;
+
     @Override
     public Map<String, ExecutionContext> partition(int gridSize) {
         Map<String, ExecutionContext> partitions  = new HashMap<>();
 
         try {
-            SplitFile.splitFile(filename,outputDir, gridSize);
+            SplitFile.splitFile(filename,outputDir, gridSize, delimiter);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -33,7 +38,7 @@ public class CsvStepPartitionner implements Partitioner {
 
             context.putString(
                     "file",
-                    outputDir +  "/ban_" + i + ".csv"
+                    outputDir +  "/temp_" + i + ".csv"
             );
 
             partitions.put("partition" + i, context);

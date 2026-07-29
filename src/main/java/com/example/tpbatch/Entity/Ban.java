@@ -1,11 +1,14 @@
 package com.example.tpbatch.Entity;
 
+import com.example.tpbatch.utils.Hashable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Pattern;
 import lombok.*;
+
+import static com.example.tpbatch.utils.HashCalcul.nullToEmpty;
 
 @Entity
 @NoArgsConstructor
@@ -14,7 +17,7 @@ import lombok.*;
 @Setter
 @Getter
 @Table(name="t_ban")
-public class Ban{
+public class Ban implements Hashable {
 
     @Id
     @Pattern(regexp = "[0-9]{5}_[A-Za-z0-9]+_.*", message = "Mauvais format d'id")
@@ -59,4 +62,31 @@ public class Ban{
     @Column(name = "hash")
     private long hash;
 
+    @Override
+    public String HashContent() {
+        return String.join("|",
+                nullToEmpty(this.getId()),
+                String.valueOf(this.getNumero()),
+                nullToEmpty(this.getRep()),
+                nullToEmpty(this.getNomVoie()),
+                nullToEmpty(this.getCodePostal()),
+                nullToEmpty(this.getCodeInsee()),
+                nullToEmpty(this.getNomCommune()),
+                nullToEmpty(this.getCodeInseeAncienneCommune()),
+                nullToEmpty(this.getNomAncienneCommune()),
+                String.valueOf(this.getX()),
+                String.valueOf(this.getY()),
+                String.valueOf(this.getLon()),
+                String.valueOf(this.getLat()),
+                nullToEmpty(this.getTypePosition()),
+                nullToEmpty(this.getAlias()),
+                nullToEmpty(this.getNomLd()),
+                nullToEmpty(this.getLibelleAcheminement()),
+                nullToEmpty(this.getNomAfnor()),
+                nullToEmpty(this.getSourcePosition()),
+                nullToEmpty(this.getSourceNomVoie()),
+                String.valueOf(this.getCertificationCommune()),
+                nullToEmpty(this.getCadParcelles())
+            );
+    }
 }

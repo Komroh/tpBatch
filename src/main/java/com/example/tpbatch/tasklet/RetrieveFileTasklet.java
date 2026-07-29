@@ -3,6 +3,7 @@ package com.example.tpbatch.tasklet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.ExitStatus;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.StepContribution;
 import org.springframework.batch.core.step.tasklet.Tasklet;
@@ -23,10 +24,17 @@ import static com.example.tpbatch.utils.ComputeChecksum.computeChecksum;
 import static com.example.tpbatch.utils.Constants.*;
 
 @Component
+@StepScope
 public class RetrieveFileTasklet implements Tasklet {
 
-    @Value("${urlCsv}")
-    String urlCsv;
+    @Value("#{jobParameters['url']}")
+    String urlString;
+
+    @Value("#{jobParameters['filePath']}")
+    String filePath;
+
+    @Value("#{jobParameters['valideHeader']}")
+    String valideHeader;
 
     private static final Logger log = LoggerFactory.getLogger(RetrieveFileTasklet.class);
 
@@ -54,11 +62,11 @@ public class RetrieveFileTasklet implements Tasklet {
             return RepeatStatus.FINISHED;
         }
 
-        File file = new File(FILE_PATH);
+        File file = new File(filePath);
         Path zipPath = Path.of(ZIPPED_PATH);
 
         if (! file.exists()) {
-            URL url = new URI(urlCsv).toURL();
+            URL url = new URI(urlString).toURL();
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestProperty(
                     "User-Agent",
@@ -89,7 +97,7 @@ public class RetrieveFileTasklet implements Tasklet {
             contribution.getStepExecution()
                     .getJobExecution()
                     .getExecutionContext()
-                    .putString("checksum", computeChecksum(FILE_PATH));
+                    .putString("checksum", computeChecksum(filePath));
         }
         else  {
             log.error("Format du fichier non valide");
@@ -102,14 +110,14 @@ public class RetrieveFileTasklet implements Tasklet {
     }
 
     private boolean checkValidity() throws IOException {
-        String header = null;
-       try(BufferedReader br = new BufferedReader(new FileReader(FILE_PATH))) {
+        String header;
+       try(BufferedReader br = new BufferedReader(new FileReader(filePath))) {
            header = br.readLine();
        }
-        return header.equals(BAN_HEADER);
+        return header.equals(valideHeader);
     }
 
-    static void decompress()
+    private void decompress()
     {
         byte[] buffer = new byte[1024];
         try
@@ -118,7 +126,7 @@ public class RetrieveFileTasklet implements Tasklet {
                     new GZIPInputStream(new FileInputStream(ZIPPED_PATH));
 
             FileOutputStream out =
-                    new FileOutputStream(FILE_PATH);
+                    new FileOutputStream(filePath);
 
             int totalSize;
             while((totalSize = is.read(buffer)) > 0 )

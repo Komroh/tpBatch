@@ -5,6 +5,8 @@ import com.example.tpbatch.Entity.Ban;
 import com.example.tpbatch.repository.BanRepository;
 import com.example.tpbatch.specification.BanSpecification;
 import com.example.tpbatch.utils.ComputeChecksum;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.JobExecution;
@@ -30,12 +32,14 @@ import java.util.List;
 
 //import static com.example.tpbatch.specification.BanSpecification.orderByDistance;
 //import static com.example.tpbatch.specification.BanSpecification.withinRange;
-import static com.example.tpbatch.utils.Constants.FILE_PATH;
+import static com.example.tpbatch.utils.Constants.*;
+
 
 @Service
 public class BanService {
 
     private final BanRepository repo;
+    private final Logger log = LoggerFactory.getLogger(BanService.class);
 
     @Qualifier("DownloadJob")
     private final Job downloadJob;
@@ -43,18 +47,28 @@ public class BanService {
     @Qualifier("ProcJob")
     private final Job procJob;
 
+    @Qualifier("DvfJob")
+    private final Job dvfJob;
+
     @Value("${downloadFile}")
     private Boolean downloadFile;
 
-    @Value("${file}")
-    private String file;
+    @Value("${addressFile}")
+    private String fileBan;
+    @Value("${dvfFile}")
+    private String dvfFile;
+    @Value("${urlBan}")
+    private String urlBan;
+    @Value("${urlDvf}")
+    private String urlDvf;
 
     private final JobOperator jobOperator;
 
-    public BanService(BanRepository repo,@Qualifier("DownloadJob") Job downloadJob, @Qualifier("ProcJob") Job procJob, JobOperator jobOperator) {
+    public BanService(BanRepository repo,@Qualifier("DownloadJob") Job downloadJob, @Qualifier("ProcJob") Job procJob, @Qualifier("DvfJob") Job dvfJob, JobOperator jobOperator) {
         this.repo = repo;
         this.downloadJob = downloadJob;
         this.procJob = procJob;
+        this.dvfJob = dvfJob;
         this.jobOperator = jobOperator;
     }
 
@@ -94,22 +108,65 @@ public class BanService {
         if(downloadFile) {
             JobParameters downloadJobParameters = new JobParametersBuilder()
                     .addLong("timestamp", System.currentTimeMillis())
+                    .addString("url", urlBan)
+                    .addString("filePath", BAN_PATH)
+                    .addString("valideHeader", BAN_HEADER)
                     .toJobParameters();
 
             JobExecution jobExec;
 
             try {
                 jobExec = jobOperator.start(downloadJob, downloadJobParameters);
-                Path path = Path.of(FILE_PATH);
+                Path path = Path.of(BAN_PATH);
                 if (jobExec.getExitStatus().getExitCode().equals(ExitStatus.COMPLETED.getExitCode())) {
                     try {
+
                         JobParameters procJobParameters = new JobParametersBuilder()
                                 .addString("typeCriteria", typeCriteria)
                                 .addString("criteria", criteria)
                                 .addString("checksum", jobExec.getExecutionContext().getString("checksum", ""))
+                                .addString("file", fileBan)
+                                .addString("filePath", BAN_PATH)
+                                .addString("delimiter", ";")
+                                .addString("initScriptPostgres", BAN_INIT_SCRIPT_PATH)
+                                .addString("insertScript", BAN_INSERT_SCRIPT_PATH)
+                                .addString("duplicateInsertScript", BAN_DUPLICATE_INSERT_SCRIPT_PATH)
+                                .addString("addedScript",BAN_ADDED_SCRIPT_PATH)
+                                .addString("updatedScript",BAN_UPDATED_SCRIPT_PATH)
+                                .addString("deletedScript",BAN_DELETED_SCRIPT_PATH)
+                                .addString("constraintScript", BAN_CONSTRAINTS_SCRIPT_PATH)
                                 .addString("downloadExitStatus", jobExec.getExitStatus().getExitCode())
                                 .toJobParameters();
-                        jobOperator.start(procJob, procJobParameters);
+                        jobExec = jobOperator.start(procJob, procJobParameters);
+
+
+                          downloadJobParameters = new JobParametersBuilder()
+                                .addLong("timestamp", System.currentTimeMillis())
+                                .addString("url", urlDvf)
+                                .addString("filePath", DVF_PATH)
+                                 .addString("valideHeader", DVF_HEADER)
+                                .toJobParameters();
+                            jobExec = jobOperator.start(downloadJob, downloadJobParameters);
+
+                            JobParameters dvfJobParameters = new JobParametersBuilder()
+                                    .addString("typeCriteria", typeCriteria)
+                                    .addString("criteria", criteria)
+                                    .addString("checksum", jobExec.getExecutionContext().getString("checksum", ""))
+                                    .addString("file", dvfFile)
+                                    .addString("filePath", DVF_PATH)
+                                    .addString("delimiter", ",")
+                                    .addString("initScriptPostgres", DVF_INIT_SCRIPT_PATH)
+                                    .addString("insertScript", DVF_INSERT_SCRIPT_PATH)
+                                    .addString("duplicateInsertScript", DVF_DUPLICATE_INSERT_SCRIPT_PATH)
+                                    .addString("addedScript", DVF_ADDED_SCRIPT_PATH)
+                                    .addString("updatedScript", DVF_UPDATED_SCRIPT_PATH)
+                                    .addString("deletedScript", DVF_DELETED_SCRIPT_PATH)
+                                    .addString("constraintScript", DVF_CONSTRAINTS_SCRIPT_PATH)
+                                    .addString("downloadExitStatus", jobExec.getExitStatus().getExitCode())
+                                    .toJobParameters();
+                                jobOperator.start(dvfJob, dvfJobParameters);
+
+
                     } catch (JobInstanceAlreadyCompleteException e) {
                         Files.delete(path);
                         return ResponseEntity.status(HttpStatus.CONFLICT).body("Job already completed");
@@ -130,12 +187,23 @@ public class BanService {
         }
         else {
             try {
-                String checksum = ComputeChecksum.computeChecksum(file);
+                String checksum = ComputeChecksum.computeChecksum(fileBan);
                 JobParameters procJobParameters = new JobParametersBuilder()
+                        .addLong("timestamp", System.currentTimeMillis())
                         .addString("typeCriteria", typeCriteria)
                         .addString("criteria", criteria)
                         .addString("checksum", checksum)
-                        .addLong("timestamp", System.currentTimeMillis())
+                        .addString("file", fileBan)
+                        .addString("filePath", BAN_PATH)
+                        .addString("delimiter", ";")
+                        .addString("initScriptPostgres", BAN_INIT_SCRIPT_PATH)
+                        .addString("insertScript", BAN_INSERT_SCRIPT_PATH)
+                        .addString("duplicateInsertScript", BAN_DUPLICATE_INSERT_SCRIPT_PATH)
+                        .addString("addedScript",BAN_ADDED_SCRIPT_PATH)
+                        .addString("updatedScript",BAN_UPDATED_SCRIPT_PATH)
+                        .addString("deletedScript",BAN_DELETED_SCRIPT_PATH)
+                        .addString("constraintScript", BAN_CONSTRAINTS_SCRIPT_PATH)
+                        .addString("downloadExitStatus", ExitStatus.COMPLETED.getExitCode())
                         .toJobParameters();
                 jobOperator.start(procJob, procJobParameters);
             } catch (JobInstanceAlreadyCompleteException e) {

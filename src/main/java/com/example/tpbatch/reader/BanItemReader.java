@@ -1,6 +1,8 @@
 package com.example.tpbatch.reader;
 
 import com.example.tpbatch.Entity.Ban;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.infrastructure.item.file.FlatFileItemReader;
 import org.springframework.batch.infrastructure.item.file.builder.FlatFileItemReaderBuilder;
@@ -9,20 +11,21 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
-import org.springframework.stereotype.Component;
 
 
 @Configuration
-@Component
+@StepScope
 public class BanItemReader {
 
+    private final Logger log = LoggerFactory.getLogger(BanItemReader.class);
 
-    @Bean
+    @Bean("BanReader")
     @StepScope
-    public FlatFileItemReader<Ban>  csvReader(
+    public FlatFileItemReader<Ban>  banReader(
             @Value("#{stepExecutionContext[file]}") String file
     )
     {
+        log.info("Initializing BAN reader");
         return new FlatFileItemReaderBuilder<Ban>()
                 .name("BanCsvReader")
                 .resource(new FileSystemResource(file))
