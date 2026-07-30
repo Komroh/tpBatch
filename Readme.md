@@ -1,124 +1,172 @@
-# TPBatch - Traitement des Adresses BAN
+# TPBatch — Traitement des adresses BAN
 
-## Description
+TPBatch est une application Spring Boot (batch + API REST) pour importer, filtrer, dédupliquer et synchroniser des fichiers CSV d'adresses (format BAN) vers une base de données. Le projet fournit des profils pour PostgreSQL et SQLite, des schémas SQL d'initialisation et des jobs batch pour détecter les ajouts, suppressions et mises à jour.
 
+Principales informations
+- ArtifactId : `tpbatch`
+- Version : `0.0.1-SNAPSHOT`
+- Classe principale : `com.example.tpbatch.TpbatchApplication`
 
-L'application charge les données depuis des fichiers CSV, les filtre selon des critères personnalisés, détecte les doublons, et synchronise les données avec une base de données SQLite.
+Prérequis
+- Java 17+ (ou version définie dans `pom.xml`)
+- Maven (ou les wrappers fournis : `mvnw` / `mvnw.cmd`)
 
-L'application permet aussi de détecter les lignes supprimées, ajoutés ou mis à jour
+Construction et exécution
 
+1) Compiler
 
-### API REST
-- **Recherche simple** : Recherche d'adresses avec pagination
-- **Critères multiples** : Filtrage par code postal, rue, commune
-- **Pagination** : Support complet de la pagination et du tri
+```powershell
+mvnw.cmd -v; mvnw.cmd -q clean package
+# ou sans wrapper
+mvn -q clean package
+```
 
-## Installation
+2) Exécuter en développement
 
+Avec le wrapper (Windows PowerShell) :
 
-### 2. Compiler le projet
+```powershell
+mvnw.cmd spring-boot:run
+```
+
+Ou exécuter le jar produit :
+
+```powershell
+java -jar target/tpbatch-0.0.1-SNAPSHOT.jar
+```
+
+Profils et configuration
+
+- Fichier principal : `src/main/resources/application.properties`
+- Profil PostgreSQL : `src/main/resources/application-postgresql.properties` (profil par défaut)
+- Profil SQLite : `src/main/resources/application-sqlite.properties`
+- Schémas d'initialisation : `src/main/resources/schema-postgresql.sql` et `src/main/resources/schema-sqlite.sql`
+
+Le profil actif par défaut (dans le dépôt) est `postgresql`. Pour forcer SQLite, lancez :
+
+```powershell
+mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=sqlite
+```
+
+Bases de données et fichiers de données
+- Fichier SQLite attendu (si vous utilisez le profil `sqlite`) : `data/ban.db`
+- Fichiers CSV d'exemple : `data/adresses-79.csv`, `data/adresses-france.csv`, etc.
+
+Utilisation (batch & arguments)
+
+Le job batch traite des fichiers CSV et propose des options de filtrage via les arguments de démarrage. Exemples :
+
+```powershell
+# Traitement complet (sans filtre)
+mvnw.cmd spring-boot:run
+
+# Filtrer par département (ex : 79)
+mvnw.cmd spring-boot:run -Dspring-boot.run.arguments="dept 79"
+
+# Filtrer par code postal exact
+mvnw.cmd spring-boot:run -Dspring-boot.run.arguments="postal 79000"
+
+# Filtrer par code INSEE
+mvnw.cmd spring-boot:run -Dspring-boot.run.arguments="insee 79007"
+```
+
+Remarque : l'application attend deux arguments pour un filtre (type + valeur) ; fournir une mauvaise combinaison peut provoquer une erreur d'exécution.
+
+API REST
+
+L'application expose des endpoints REST pour rechercher les adresses :
+
+- Recherche simple : `GET /recherche?codePostal=79000&rue=Victor&commune=Niort`
+- Recherche paginée : `GET /recherche/page?...&page=0&size=20&sort=nomCommune,asc`
+
+La documentation OpenAPI (springdoc) est incluse. Après démarrage, ouvrez l'UI Swagger :
+
+- Swagger UI (interface) : http://localhost:8080/swagger-ui.html  ou  http://localhost:8080/swagger-ui/index.html
+- OpenAPI JSON : http://localhost:8080/v3/api-docs
+
+Exemple direct (copiez dans votre navigateur) :
+
+```
+http://localhost:8080/swagger-ui/index.html
+```
+
+Lancer le job via l'API REST (recommandé)
+
+Le moyen principal pour déclencher le traitement batch est l'endpoint REST fourni par l'application :
+
+- URL : POST /batch/lancer
+- Paramètres (query string, optionnels) :
+  - `typeCriteria` : type de filtre (`dept`, `postal`, `insee`, ...)
+  - `criteria` : valeur du filtre (ex. `79`, `79000`, `79007`)
+
+Exemples :
+
+Curl (Linux/macOS) :
 
 ```bash
-mvn clean compile
+curl -X POST "http://localhost:8080/batch/lancer"
+curl -X POST "http://localhost:8080/batch/lancer?typeCriteria=dept&criteria=79"
 ```
 
-### 3. Exécuter l'application
+PowerShell (Windows) :
 
-#### Sans paramètre (traitement complet)
-```bash
-mvn spring-boot:run
+```powershell
+Invoke-RestMethod -Method Post -Uri "http://localhost:8080/batch/lancer"
+Invoke-RestMethod -Method Post -Uri "http://localhost:8080/batch/lancer?typeCriteria=postal&criteria=79000"
 ```
 
-#### Avec filtrage par département
-```bash
-mvn spring-boot:run -Dspring-boot.run.arguments="dept 79"
+Réponses et codes HTTP courants :
+- 200 OK : job démarré (corps = statut de sortie du job ou message)
+- 409 CONFLICT : job déjà terminé
+- 423 LOCKED : job déjà en cours d'exécution
+- 500 INTERNAL_SERVER_ERROR : erreur lors du lancement
+
+Comportement important :
+- Si la propriété `downloadFile` (fichier de configuration) est à `true`, le contrôleur lance d'abord un téléchargement (BAN puis DVF) puis exécute les jobs de traitement associés. Si `downloadFile` est `false`, le job de traitement s'exécute en utilisant le fichier local configuré (`application-*.properties`).
+- Les rapports et logs de traitement sont générés dans le répertoire `data/reports/` et les fichiers temporaires dans `data/tmp/`.
+
+Vérifiez les logs de l'application pour le détail de l'exécution et des erreurs.
+
+Flux batch (résumé)
+
+Le job exécute les étapes principales suivantes :
+- Lecture et validation du CSV
+- Détection et gestion des doublons
+- Identification des enregistrements mis à jour, ajoutés ou supprimés
+- Persistance et sauvegarde pour comparaison aux runs suivants
+
+Schéma et initialisation
+
+Les scripts d'initialisation se trouvent dans :
+- `src/main/resources/schema-postgresql.sql`
+- `src/main/resources/schema-sqlite.sql`
+
+Tests et qualité
+
+Exécuter les tests unitaires :
+
+```powershell
+mvnw.cmd test
 ```
 
-#### Avec filtrage par code postal
-```bash
-mvn spring-boot:run -Dspring-boot.run.arguments="postal 79000"
+Packaging
+
+Créer le package exécutable :
+
+```powershell
+mvnw.cmd -DskipTests package
 ```
 
-#### Avec filtrage par code INSEE
-```bash
-mvn spring-boot:run -Dspring-boot.run.arguments="insee 79007"
-```
+Fichiers utiles dans le dépôt
 
-## Utilisation
+- `pom.xml` : dépendances et configuration Maven
+- `mvnw`, `mvnw.cmd` : wrappers Maven
+- `src/main/resources/application-*.properties` : profils
+- `data/` : CSV et base de données (ex. `data/ban.db`)
 
-### Paramètres de la ligne de commande
+Contact / contribution
 
-L'application accepte **optionnellement** 2 paramètres pour filtrer les données :
+Ouvrez une issue ou une PR sur le dépôt pour signaler un bug ou proposer une amélioration. Pour toute question, ajoutez des informations de contexte (ex. fichier CSV utilisé, profil, logs).
 
-| Paramètre | Description | Exemple |
-|-----------|-------------|---------|
-| `dept` | Filtre par département (2 premiers chiffres du code postal) | `dept 79` |
-| `postal` | Filtre par code postal exact | `postal 79000` |
-| `insee` | Filtre par code INSEE exact | `insee 79007` |
-
-**Note** : Si vous fournissez des paramètres, il faut exactement 2 arguments (le type et la valeur), sinon une exception sera levée.
-
-## Configuration
-
-Les paramètres de configuration sont dans `src/main/resources/application.properties` :
-
-### Base de données
-Modifier :
-
-spring.datasource.url=jdbc:sqlite:./src/main/resources/data/ban.db
-
-### Fichier CSV à traiter (par défaut)
-file=data/adresses-79.csv
-
-### Logging
-logging.level.com.example.tpbatch=info
-
-
-## API REST
-
-#### Recherche simple
-```http
-GET /recherche?codePostal=79000&rue=Victor&commune=Niort
-```
-
-#### Recherche paginée
-```http
-GET /recherche/page?codePostal=79000&rue=Victor&commune=Niort&page=0&size=20&sort=nomCommune,asc
-```
-
-#### Documentation Swagger
-Une fois l'application démarrée, accédez à :
-```
-http://localhost:8080/swagger-ui.html
-```
-
-## Flux de traitement Batch
-
-Le job Batch exécute les étapes dans cet ordre :
-
-1. **Init Insert Step** : 
-   - Lecture du CSV
-   - Validation et filtrage
-   - Détection des doublons
-   - Écriture en base de données
-
-2. **Update Step** : Identification des mises à jour
-
-3. **Added Step** : Identification des nouvelles adresses
-
-4. **Deleted Step** : Identification des adresses suppressions
-
-5. **Insert Step** : Insertion de la table courante dans une table backup pour pouvoir faire des comparaisons au prochain batch
-
-##  Base de données
-
-### Schéma
-La base de données est initialisée via `schema-sqlite.sql` :
-- Table **BAN** : Stockage des adresses
-- Colonnes : id, id_fantoir, numero, nom_voie, code_postal, code_insee, etc.
-
-### Accès
-```
-SQLite: ./src/main/resources/data/ban.db
-```
-
+---
+Cette documentation est générée automatiquement à partir du code du projet. Si vous souhaitez un README plus détaillé (exemples d'API complets, diagrammes ou instructions Docker), dites-le et je l'ajouterai.
