@@ -5,13 +5,15 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
+
 
 @AllArgsConstructor
 @Getter
 @Setter
 public class DvfDto {
     private String idMutation;
-    private String dateMutation;
+    private LocalDate dateMutation;
     private String numeroDisposition;
     private String natureMutation;
     private Double valeurFonciere;

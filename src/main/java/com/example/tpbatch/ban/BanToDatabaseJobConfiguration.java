@@ -4,6 +4,7 @@ import com.example.tpbatch.dto.BanDto;
 import com.example.tpbatch.dto.DvfDto;
 import com.example.tpbatch.entity.Ban;
 
+import com.example.tpbatch.entity.Commune;
 import com.example.tpbatch.entity.Dvf;
 import com.example.tpbatch.listener.BanItemProcessListener;
 import com.example.tpbatch.listener.DownloadJobListener;
@@ -15,11 +16,13 @@ import com.example.tpbatch.processor.BanProcessor;
 import com.example.tpbatch.processor.DuplicateDvfProcessor;
 import com.example.tpbatch.processor.DuplicateProcessor;
 
+import com.example.tpbatch.reader.GeoJsonItemReader;
 import com.example.tpbatch.tasklet.*;
 import com.example.tpbatch.writer.BanRoutingWriter;
 import com.example.tpbatch.writer.DvfRoutingWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.launch.support.JobOperatorFactoryBean;
@@ -29,6 +32,8 @@ import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.Step;
 import org.springframework.batch.core.step.builder.StepBuilder;
 
+
+import org.springframework.batch.infrastructure.item.database.JpaItemWriter;
 import org.springframework.batch.infrastructure.item.file.FlatFileItemReader;
 import org.springframework.batch.infrastructure.item.support.CompositeItemProcessor;
 import org.springframework.batch.infrastructure.item.validator.BeanValidatingItemProcessor;
@@ -42,6 +47,7 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import java.io.IOException;
 import java.util.List;
 
 
@@ -101,6 +107,28 @@ public class BanToDatabaseJobConfiguration {
                 .build();
     }
 
+    @Bean
+    public Job contourCommunesJob(JobRepository jobRepository,
+                                  @Qualifier("contourCommunesStep") Step contourCommunesStep)
+    {
+        return  new JobBuilder("contourCommunesJob", jobRepository)
+                .start(contourCommunesStep)
+                .build();
+    }
+
+    @Bean
+    public Step contourCommunesStep(JobRepository repo, @Qualifier("contourItemReader") GeoJsonItemReader reader,
+                                    @Qualifier("contourItemWriter") JpaItemWriter<Commune> writer,
+                                    PlatformTransactionManager transactionManager)
+    {
+        return new StepBuilder("contour step", repo)
+                .<Commune, Commune>chunk(chunkSize)
+                .reader(reader)
+                .writer(writer)
+                .transactionManager(transactionManager)
+                .build();
+    }
+
     @Bean("dvfJob")
     public Job dvfJob(JobRepository repo,
                    @Qualifier("sortStep") Step sortStep,
@@ -111,6 +139,7 @@ public class BanToDatabaseJobConfiguration {
                    @Qualifier("updateStep") Step updateStep,
                    @Qualifier("populateStep") @Autowired(required = false) Step populateStep,
                    @Qualifier("addConstraintsStep") @Autowired(required = false) Step addConstraintsStep,
+                   @Qualifier("buildTransactionStep") Step buildTransactionStep,
                    @Qualifier("archiveStep") Step archiveStep,
                    @Qualifier("reportStep") Step reportStep,
                    JobProgressListener listener)
@@ -124,7 +153,8 @@ public class BanToDatabaseJobConfiguration {
                 .next(loadDvfStepPartitioner)
                 .next(addedStep)
                 .next(deletedStep)
-                .next(updateStep);
+                .next(updateStep)
+                .next(buildTransactionStep);
 
         if (populateStep != null) {
             flow.next(populateStep);
@@ -190,6 +220,15 @@ public class BanToDatabaseJobConfiguration {
         handler.setStep(workerStep);
         handler.setGridSize(numberOfThread);
         return handler;
+    }
+
+    @Bean
+    @StepScope
+    public GeoJsonItemReader contourItemReader(
+            @Value("${contourFile}") String filePath)
+            throws IOException {
+
+        return new GeoJsonItemReader(filePath);
     }
 
     @Bean("dvfPartitionHandler")
@@ -335,6 +374,13 @@ public class BanToDatabaseJobConfiguration {
     @Bean
     public Step errorReportStep(GenerateReportTasklet tasklet, JobRepository repo, PlatformTransactionManager transactionManager) {
         return new StepBuilder("error report Step", repo)
+                .tasklet(tasklet)
+                .transactionManager(transactionManager)
+                .build();
+    }
+    @Bean
+    public Step buildTransactionStep(TransactionTasklet tasklet, JobRepository repo, PlatformTransactionManager transactionManager) {
+        return new StepBuilder("build transaction Step", repo)
                 .tasklet(tasklet)
                 .transactionManager(transactionManager)
                 .build();

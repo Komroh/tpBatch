@@ -1,9 +1,13 @@
 package com.example.tpbatch.controller;
 
 import com.example.tpbatch.dto.BanSearchRequest;
+import com.example.tpbatch.dto.TarifDto;
 import com.example.tpbatch.entity.Ban;
 import com.example.tpbatch.service.BanService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -75,6 +79,19 @@ public class BanController {
     public ResponseEntity<?> lancer(@RequestParam (required = false) String typeCriteria, @RequestParam (required = false)  String criteria)
     {
        return service.lancer(typeCriteria, criteria);
+    }
+
+    @GetMapping(value = "/geojson")
+    public ResponseEntity<Resource> getCommunes(@Value("${contourFile}") String contourFile)
+    {
+        Resource resource = new FileSystemResource(contourFile);
+        return ResponseEntity.ok().body(resource);
+    }
+    @GetMapping(value="communes/{codeInsee}/tarif")
+    public TarifDto tarif(
+            @PathVariable String codeInsee
+    ){
+        return service.getTarif(codeInsee);
     }
 
 }

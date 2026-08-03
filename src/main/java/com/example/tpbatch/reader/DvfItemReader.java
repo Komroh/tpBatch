@@ -10,7 +10,10 @@ import org.springframework.batch.infrastructure.item.file.mapping.BeanWrapperFie
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.io.FileSystemResource;
+
+import java.time.LocalDate;
 
 @Configuration
 @StepScope
@@ -25,8 +28,16 @@ public class DvfItemReader {
     )
     {
         log.info("DVF reader créé");
+
+        DefaultConversionService conversionService = new DefaultConversionService();
+
+        conversionService.addConverter(String.class, LocalDate.class,
+                LocalDate::parse);
+
         BeanWrapperFieldSetMapper<Dvf> fieldSetMapper = new BeanWrapperFieldSetMapper<>();
         fieldSetMapper.setTargetType(Dvf.class);
+        fieldSetMapper.setConversionService(conversionService);
+
         return new FlatFileItemReaderBuilder<Dvf>()
                 .name("DvfCsvReader")
                 .resource(new FileSystemResource(file))

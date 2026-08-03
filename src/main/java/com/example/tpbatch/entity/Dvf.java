@@ -8,6 +8,8 @@ import jakarta.persistence.Table;
 import lombok.*;
 
 
+import java.time.LocalDate;
+
 import static com.example.tpbatch.utils.HashCalcul.nullToEmpty;
 
 @Entity
@@ -23,7 +25,7 @@ public class Dvf implements Hashable {
     @Column(name = "id_mutation")
     private String idMutation;
     @Column(name = "date_mutation")
-    private String dateMutation;
+    private LocalDate dateMutation;
     @Column(name ="numero_disposition")
     private String numeroDisposition;
     @Column(name = "nature_mutation")

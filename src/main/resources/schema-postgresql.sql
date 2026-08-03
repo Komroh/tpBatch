@@ -73,8 +73,8 @@ CREATE TABLE IF NOT EXISTS t_ban_duplicate(
 
 
 CREATE TABLE IF NOT EXISTS t_dvf(
-    id_mutation VARCHAR PRIMARY KEY,
-    date_mutation VARCHAR,
+    id_mutation VARCHAR,
+    date_mutation DATE,
     numero_disposition VARCHAR,
     nature_mutation VARCHAR,
     valeur_fonciere NUMERIC,
@@ -119,7 +119,7 @@ CREATE TABLE IF NOT EXISTS t_dvf(
 CREATE TABLE IF NOT EXISTS t_dvf_duplicate(
     dup_id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     id_mutation VARCHAR,
-    date_mutation VARCHAR,
+    date_mutation DATE,
     numero_disposition VARCHAR,
     nature_mutation VARCHAR,
     valeur_fonciere NUMERIC,
@@ -159,4 +159,57 @@ CREATE TABLE IF NOT EXISTS t_dvf_duplicate(
     longitude NUMERIC,
     latitude NUMERIC,
     hash BIGINT
+);
+
+CREATE TABLE IF NOT EXISTS t_transaction (
+    id BIGSERIAL PRIMARY KEY,
+
+    id_mutation VARCHAR NOT NULL,
+    numero_disposition VARCHAR NOT NULL,
+
+    date_mutation DATE,
+    nature_mutation VARCHAR,
+
+    valeur_fonciere NUMERIC,
+
+    type_local VARCHAR,
+    surface_reelle_bati INTEGER,
+    nombre_pieces_principales INTEGER,
+
+    surface_terrain INTEGER,
+
+    adresse_numero VARCHAR,
+    adresse_suffixe VARCHAR,
+    adresse_nom_voie VARCHAR,
+    code_postal VARCHAR,
+
+    code_commune VARCHAR,
+    nom_commune VARCHAR,
+
+    longitude DOUBLE PRECISION,
+    latitude DOUBLE PRECISION,
+
+    geom geometry(Point,4326)
+);
+
+CREATE INDEX IF NOT EXISTS idx_transaction_commune
+    ON t_transaction(code_commune);
+
+CREATE INDEX IF NOT EXISTS idx_transaction_date
+    ON t_transaction(date_mutation);
+
+CREATE INDEX IF NOT EXISTS idx_transaction_type
+    ON t_transaction(type_local);
+
+CREATE INDEX IF NOT EXISTS idx_transaction_geom
+    ON t_transaction
+        USING GIST(geom);
+
+CREATE TABLE IF NOT EXISTS t_commune(
+    code_insee VARCHAR PRIMARY KEY,
+    nom VARCHAR,
+    departement VARCHAR,
+    region VARCHAR,
+    epci VARCHAR,
+    geom geometry(MultiPolygon,4326)
 );

@@ -1,8 +1,8 @@
 ALTER TABLE t_dvf RENAME TO t_dvf_old;
 
 CREATE TABLE IF NOT EXISTS t_dvf(
-    id_mutation VARCHAR PRIMARY KEY,
-    date_mutation VARCHAR,
+    id_mutation VARCHAR,
+    date_mutation DATE,
     numero_disposition VARCHAR,
     nature_mutation VARCHAR,
     valeur_fonciere NUMERIC,
@@ -43,3 +43,7 @@ CREATE TABLE IF NOT EXISTS t_dvf(
     latitude NUMERIC,
     hash BIGINT
 );
+
+DROP INDEX IF EXISTS idx_t_dvf_id_mutation;
+
+CREATE INDEX idx_t_dvf_id_mutation ON t_dvf(id_mutation);

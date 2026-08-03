@@ -11,6 +11,7 @@ public class Constants {
     public static final String BAN_INSERT_SCRIPT_PATH = "ban/insert.sql";
     public static final String BAN_DUPLICATE_INSERT_SCRIPT_PATH = "ban/duplicate_insert.sql";
     public static final String BAN_INIT_SCRIPT_PATH = "ban/init.sql";
+    public static final String BAN_INIT_SCRIPT_SQLITE_PATH = "ban/initSqlite.sql";
     public static final String BAN_ADDED_SCRIPT_PATH = "ban/added.sql";
     public static final String BAN_UPDATED_SCRIPT_PATH = "ban/updated.sql";
     public static final String BAN_DELETED_SCRIPT_PATH = "ban/deleted.sql";
@@ -18,6 +19,7 @@ public class Constants {
     public static final String DVF_INSERT_SCRIPT_PATH = "dvf/insert.sql";
     public static final String DVF_DUPLICATE_INSERT_SCRIPT_PATH = "dvf/duplicate_insert.sql";
     public static final String DVF_INIT_SCRIPT_PATH = "dvf/init.sql";
+    public static final String DVF_INIT_SCRIPT_SQLITE_PATH = "dvf/initSqlite.sql";
     public static final String DVF_ADDED_SCRIPT_PATH = "dvf/added.sql";
     public static final String DVF_UPDATED_SCRIPT_PATH = "dvf/updated.sql";
     public static final String DVF_DELETED_SCRIPT_PATH = "dvf/deleted.sql";

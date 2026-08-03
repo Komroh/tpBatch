@@ -32,6 +32,9 @@ public class InitTableTasklet implements Tasklet {
     @Value("#{jobParameters['initScriptPostgres']}")
     private String initScriptPostgres;
 
+    @Value("#{jobParameters['initScriptSqlite']}")
+    private String initScriptSqlite;
+
     @Override
     public @Nullable RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
 
@@ -41,45 +44,15 @@ public class InitTableTasklet implements Tasklet {
         if (Arrays.asList(profiles).contains("postgresql")) {
             populator.addScript(new ClassPathResource("schema-postgresql.sql"));
             sql = loader.load(initScriptPostgres);
+            populator.execute(dataSource);
+            populator.setContinueOnError(false);
         }else {
-            populator.addScript(new ClassPathResource("schema-sqlite.sql"));
-            sql = """
-            ALTER TABLE t_ban RENAME TO t_ban_prec;
-
-            CREATE TABLE IF NOT EXISTS t_ban(
-                    id TEXT PRIMARY KEY,
-                    id_fantoir TEXT,
-                    numero INTEGER,
-                    rep TEXT,
-                    nom_voie TEXT,
-                    code_postal TEXT,
-                    code_insee TEXT,
-                    nom_commune TEXT,
-                    code_insee_ancienne_commune TEXT,
-                    nom_ancienne_commune TEXT,
-                    x REAL,
-                    y REAL,
-                    lon REAL,
-                    lat REAL,
-                    type_position TEXT,
-                    alias TEXT,
-                    nom_ld TEXT,
-                    libelle_acheminement TEXT,
-                    nom_afnor TEXT,
-                    source_position TEXT,
-                    source_nom_voie TEXT,
-                    certification_commune INTEGER,
-                    cad_parcelles TEXT,
-                    hash INTEGER
-                    );
-            """;
+            sql = loader.load(initScriptSqlite);
         }
 
-        populator.setContinueOnError(false);
 
-        populator.execute(dataSource);
 
-       jdbcTemplate.execute(sql);
+        jdbcTemplate.execute(sql);
 
         return RepeatStatus.FINISHED;
     }
