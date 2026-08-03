@@ -35,9 +35,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
-//import static com.example.tpbatch.specification.BanSpecification.orderByDistance;
-//import static com.example.tpbatch.specification.BanSpecification.withinRange;
 import static com.example.tpbatch.utils.Constants.*;
 
 
@@ -271,4 +270,18 @@ public class BanService {
                 tarif.getPrixM2Moyen()
         );
     }
+
+        public List<TarifDto> getTarifs() {
+
+            List<TarifCommuneProjection> tarifs = transactionRepo.getTarif();
+            return tarifs.stream().map(tarif -> new TarifDto(
+                    tarif.getCodeInsee(),
+                    tarif.getCommune(),
+                    tarif.getNombreTransactions(),
+                    tarif.getPrixMoyen(),
+                    tarif.getPrixMedian(),
+                    tarif.getPrixM2Moyen()
+            )).collect(Collectors.toList());
+        }
+
 }

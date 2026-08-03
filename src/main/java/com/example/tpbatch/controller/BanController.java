@@ -94,4 +94,9 @@ public class BanController {
         return service.getTarif(codeInsee);
     }
 
+    @GetMapping(value="communes/tarifs")
+    public List<TarifDto> tarifs(){
+        return service.getTarifs();
+    }
+
 }
