@@ -35,7 +35,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.example.tpbatch.utils.Constants.*;
 
@@ -146,7 +145,6 @@ public class BanService {
                     try {
 
                         JobParameters procJobParameters = new JobParametersBuilder()
-                                .addLong("timestamp", System.currentTimeMillis())
                                 .addString("typeCriteria", typeCriteria)
                                 .addString("criteria", criteria)
                                 .addString("checksum", jobExec.getExecutionContext().getString("checksum", ""))
@@ -167,7 +165,6 @@ public class BanService {
 
 
                           downloadJobParameters = new JobParametersBuilder()
-                                .addLong("timestamp", System.currentTimeMillis())
                                 .addString("url", urlDvf)
                                 .addString("filePath", DVF_PATH)
                                  .addString("valideHeader", DVF_HEADER)
@@ -175,7 +172,6 @@ public class BanService {
                             jobExec = jobOperator.start(downloadJob, downloadJobParameters);
 
                             JobParameters dvfJobParameters = new JobParametersBuilder()
-                                    .addLong("timestamp", System.currentTimeMillis())
                                     .addString("typeCriteria", typeCriteria)
                                     .addString("criteria", criteria)
                                     .addString("checksum", jobExec.getExecutionContext().getString("checksum", ""))
@@ -217,7 +213,6 @@ public class BanService {
             try {
                 String checksum = ComputeChecksum.computeChecksum(fileBan);
                 JobParameters procJobParameters = new JobParametersBuilder()
-                        .addLong("timestamp", System.currentTimeMillis())
                         .addString("typeCriteria", typeCriteria)
                         .addString("criteria", criteria)
                         .addString("checksum", checksum)
@@ -281,7 +276,7 @@ public class BanService {
                     tarif.getPrixMoyen(),
                     tarif.getPrixMedian(),
                     tarif.getPrixM2Moyen()
-            )).collect(Collectors.toList());
+            )).toList();
         }
 
 }

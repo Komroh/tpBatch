@@ -9,8 +9,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jspecify.annotations.Nullable;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.geojson.GeoJsonReader;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.infrastructure.item.ItemReader;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -20,7 +18,6 @@ import java.nio.file.Path;
 
 public class GeoJsonItemReader implements ItemReader<Commune> {
 
-    private final Logger log =  LoggerFactory.getLogger(GeoJsonItemReader.class);
     private final ObjectMapper mapper = new ObjectMapper();
     private final JsonParser parser;
     private final GeoJsonReader geometryReader = new GeoJsonReader();
@@ -40,7 +37,7 @@ public class GeoJsonItemReader implements ItemReader<Commune> {
             JsonToken token = parser.nextToken();
 
             if (token == JsonToken.FIELD_NAME
-                    && "features".equals(parser.getCurrentName())) {
+                    && "features".equals(parser.currentName())) {
 
                 parser.nextToken();
                 return;
